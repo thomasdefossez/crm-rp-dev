@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,11 +17,12 @@ export default function ContactsPage() {
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const initSupabase = async () => {
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+            const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+            const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-        const fetchTotalContacts = async () => {
             const { count, error } = await supabase
                 .from('contacts')
                 .select('*', { count: 'exact', head: true });
@@ -30,7 +30,7 @@ export default function ContactsPage() {
                 setTotalContacts(count);
             }
         };
-        fetchTotalContacts();
+        initSupabase();
     }, [refreshCounter]);
 
     return (
