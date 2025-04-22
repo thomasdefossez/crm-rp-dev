@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Mail, MoreHorizontal } from 'lucide-react';
+import { Settings, MoreHorizontal } from 'lucide-react';
 
 import { ContactsTable } from './_components/contacts-table';
 import { CreateContactDrawer } from './_components/CreateContactDrawer';
@@ -14,6 +14,8 @@ import { CreateContactDrawer } from './_components/CreateContactDrawer';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export const dynamic = 'force-dynamic';
 
 export default function ContactsPage() {
     const [refreshCounter, setRefreshCounter] = useState(0);
@@ -31,7 +33,7 @@ export default function ContactsPage() {
             }
         };
         fetchTotalContacts();
-    }, [refreshCounter]); // Recharge si refreshCounter change (nouveau contact)
+    }, [refreshCounter]);
 
     return (
         <div className="flex flex-col min-h-screen bg-white">
