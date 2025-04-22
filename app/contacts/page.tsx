@@ -12,10 +12,13 @@ import { Settings, MoreHorizontal } from 'lucide-react';
 import { ContactsTable } from './_components/contacts-table';
 import { CreateContactDrawer } from './_components/CreateContactDrawer';
 
-// Initialisation Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+let supabase: ReturnType<typeof createClient> | null = null;
+
+if (typeof window !== 'undefined') {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+}
 
 export default function ContactsPage() {
     const [refreshCounter, setRefreshCounter] = useState(0);
@@ -25,6 +28,7 @@ export default function ContactsPage() {
     // Fetch total contacts au chargement
     useEffect(() => {
         const fetchTotalContacts = async () => {
+            if (!supabase) return;
             const { count, error } = await supabase
                 .from('contacts')
                 .select('*', { count: 'exact', head: true });
