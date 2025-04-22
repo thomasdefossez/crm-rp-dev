@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -17,7 +16,7 @@ type Contact = {
 
 type ContactsTableProps = {
     refreshTrigger: number;
-    onTotalContactsChange?: (total: number) => void; // Nouvelle prop
+    onTotalContactsChange?: (total: number) => void;
 };
 
 export function ContactsTable({ refreshTrigger, onTotalContactsChange }: ContactsTableProps) {
@@ -28,6 +27,8 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange }: Contact
 
     useEffect(() => {
         const fetchContacts = async () => {
+            const { supabase } = await import('@/lib/supabaseClient');
+
             const from = (currentPage - 1) * pageSize;
             const to = from + pageSize - 1;
 
@@ -42,7 +43,7 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange }: Contact
                 setContacts(data || []);
                 setTotalContacts(count || 0);
                 if (onTotalContactsChange) {
-                    onTotalContactsChange(count || 0); // Remonte le total
+                    onTotalContactsChange(count || 0);
                 }
             }
         };
@@ -52,7 +53,6 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange }: Contact
 
     return (
         <div className="rounded-lg border bg-white">
-            {/* Header row */}
             <div className="grid grid-cols-[40px_1fr_1fr_1fr] items-center px-4 py-2 border-b bg-muted text-xs font-semibold text-muted-foreground uppercase">
                 <div>
                     <Checkbox />
@@ -62,7 +62,6 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange }: Contact
                 <div>Email</div>
             </div>
 
-            {/* Data rows */}
             {contacts.map((contact) => (
                 <div
                     key={contact.id}
@@ -79,10 +78,7 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange }: Contact
                                 {(contact.lastname?.[0] || '').toUpperCase()}
                             </AvatarFallback>
                         </Avatar>
-                        <Link
-                            href={`/contacts/${contact.id}`}
-                            className="font-medium text-primary hover:underline"
-                        >
+                        <Link href={`/contacts/${contact.id}`} className="font-medium text-primary hover:underline">
                             {contact.firstname} {contact.lastname}
                         </Link>
                     </div>
@@ -91,7 +87,6 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange }: Contact
                 </div>
             ))}
 
-            {/* Pagination Controls */}
             <div className="flex items-center justify-between px-4 py-2 bg-muted text-sm text-muted-foreground">
                 <div>
                     {totalContacts} contacts • Page {currentPage} sur {Math.max(1, Math.ceil(totalContacts / pageSize))}
