@@ -162,18 +162,18 @@ export function DataTableLists() {
                   <CommandInput placeholder="Rechercher une colonne..." />
                   <CommandEmpty>Aucune colonne trouvée.</CommandEmpty>
                   <CommandGroup>
-                    {allColumns.map(column => (
+                    {table.getFlatHeaders().map(header => (
                         <CommandItem
-                            key={column.id}
-                            onSelect={() => column.toggleVisibility()}
+                            key={header.id}
+                            onSelect={() => header.column.toggleVisibility()}
                             className="flex items-center gap-2"
                         >
                           <Checkbox
-                              checked={column.getIsVisible()}
-                              onCheckedChange={() => column.toggleVisibility()}
+                              checked={header.column.getIsVisible()}
+                              onCheckedChange={() => header.column.toggleVisibility()}
                               className="pointer-events-none"
                           />
-                          <span>{flexRender(column.columnDef.header, { table, column })}</span>
+                          <span>{flexRender(header.column.columnDef.header, header.column.getHeaderContext())}</span>
                         </CommandItem>
                     ))}
                   </CommandGroup>

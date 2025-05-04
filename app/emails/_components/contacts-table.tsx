@@ -26,12 +26,12 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange, searchQue
 
         if (safeSearch.length >= 3) {
             const response = await supabase.rpc('search_contacts', { search_text: safeSearch });
-            data = response.data;
+            data = Array.isArray(response.data) ? response.data : [];
             error = response.error;
-            count = data ? data.length : 0;
+            count = data.length;
         } else {
             const response = await supabase.from('contacts').select('*', { count: 'exact' });
-            data = response.data;
+            data = Array.isArray(response.data) ? response.data : [];
             error = response.error;
             count = response.count || 0;
         }

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Check, ChevronDown, Paperclip } from 'lucide-react';
 import RecipientsStep from './RecipientsStep';
-import SendTestEmailDialog from './SendTestEmailDialog'; // 👈 Import pop-in
+import { SendTestEmailDialog } from './SendTestEmailDialog'; // 👈 Import pop-in as named import
 
 export default function EmailComposerPage() {
     const [currentStep, setCurrentStep] = useState(1);

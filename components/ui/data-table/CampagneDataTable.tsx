@@ -223,7 +223,15 @@ export function DataTable<TData, TValue>({
                                                 onCheckedChange={() => column.toggleVisibility()}
                                                 className="pointer-events-none"
                                             />
-                                            <span>{flexRender(column.columnDef.header, { table, column })}</span>
+                                            <span>{flexRender(column.columnDef.header, {
+                                                table,
+                                                column,
+                                                header: {
+                                                    id: column.id,
+                                                    column,
+                                                    getContext: () => ({ table, column, header: undefined })
+                                                } as any
+                                            })}</span>
                                         </CommandItem>
                                     ))}
                                 </CommandGroup>
@@ -328,9 +336,8 @@ export function DataTable<TData, TValue>({
                 <Select
                     value={table.getState().pagination.pageSize.toString()}
                     onValueChange={value => table.setPageSize(Number(value))}
-                    className="w-24"
                 >
-                    <SelectTrigger size="sm" variant="outline">
+                    <SelectTrigger size="sm" className="w-24">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

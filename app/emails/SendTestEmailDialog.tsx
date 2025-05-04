@@ -10,15 +10,18 @@ import { toast } from 'sonner'; // Toaster
 import { useSession } from '@supabase/auth-helpers-react'; // Supabase Auth
 
 interface SendTestEmailDialogProps {
-    trigger: React.ReactNode;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
     emailBody: string;
+    trigger?: React.ReactNode; // facultatif pour compatibilité
 }
 
-export default function SendTestEmailDialog({
-                                                trigger,
-                                                emailBody,
-                                            }: SendTestEmailDialogProps) {
-    const [open, setOpen] = useState(false);
+export function SendTestEmailDialog({
+    open,
+    onOpenChange,
+    emailBody,
+    trigger,
+}: SendTestEmailDialogProps) {
     const session = useSession();
     const userEmail = session?.user?.email || 'success@resend.dev'; // Utilisateur connecté ou fallback Resend
 
@@ -47,7 +50,7 @@ export default function SendTestEmailDialog({
             const result = await response.json();
             if (result.success) {
                 toast.success('Email envoyé avec succès !');
-                setOpen(false); // Fermer la popin après succès
+                onOpenChange(false); // Fermer la popin après succès
             } else {
                 toast.error('Erreur lors de l’envoi : ' + result.error.message);
             }
@@ -58,8 +61,8 @@ export default function SendTestEmailDialog({
 
     return (
         <>
-            <div onClick={() => setOpen(true)}>{trigger}</div>
-            <Dialog open={open} onOpenChange={setOpen}>
+            {trigger && <div onClick={() => onOpenChange(true)}>{trigger}</div>}
+            <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent className="max-w-sm">
                     <DialogHeader>
                         <DialogTitle>Envoyer un email test</DialogTitle>
@@ -95,7 +98,7 @@ export default function SendTestEmailDialog({
                             pour envoyer à d'autres.
                         </div>
                         <div className="flex justify-end gap-2 pt-4">
-                            <Button variant="outline" onClick={() => setOpen(false)}>
+                            <Button variant="outline" onClick={() => onOpenChange(false)}>
                                 Annuler
                             </Button>
                             <Button onClick={handleSendTestEmail}>Envoyer le test</Button>
@@ -106,3 +109,5 @@ export default function SendTestEmailDialog({
         </>
     );
 }
+
+export default SendTestEmailDialog;

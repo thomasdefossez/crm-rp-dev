@@ -4,7 +4,8 @@ import {
     Sheet,
     SheetContent,
     SheetHeader,
-    SheetTitle
+    SheetTitle,
+    SheetTrigger
 } from "@/components/ui/sheet"
 import {
     Accordion,
@@ -30,12 +31,13 @@ import { supabase } from "@/lib/supabaseClient"
 import { toast } from "sonner"
 
 interface Props {
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    onContactCreated?: () => void
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onContactCreated?: () => void;
+    triggerButton?: React.ReactNode;
 }
 
-export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCreated }) => {
+export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCreated, triggerButton }) => {
     const [loading, setLoading] = useState(false)
     const [contactType, setContactType] = useState<"person" | "organization">("person")
 
@@ -132,6 +134,11 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
+            {triggerButton && (
+                <SheetTrigger asChild>
+                    {triggerButton}
+                </SheetTrigger>
+            )}
             <SheetContent side="right" className="p-0 w-[900px] max-w-[800px] flex flex-col">
                 <div className="p-6 pb-2 border-b">
                     <SheetHeader>

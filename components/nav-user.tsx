@@ -51,7 +51,7 @@ export function NavUser({
       if (data.user) {
         setConnectedUser({
           name: data.user.user_metadata?.full_name || data.user.email,
-          email: data.user.email,
+          email: data.user.email || "",
           avatar: data.user.user_metadata?.avatar_url || user.avatar,
         });
       }

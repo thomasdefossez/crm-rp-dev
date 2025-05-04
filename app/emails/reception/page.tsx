@@ -4,9 +4,12 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
-import { SidebarProvider } from "@/components/ui/sidebar";
+import {
+    SidebarProvider,
+    SidebarInset,
+    SidebarTrigger
+} from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import {
     Breadcrumb,
     BreadcrumbList,
@@ -27,36 +30,28 @@ export default function ReceptionPage() {
         <SidebarProvider>
             <AppSidebar>
                 <nav className="space-y-2 px-6 py-4 text-sm text-muted-foreground">
-                    <div className="font-semibold text-muted-foreground mb-4">
-                        Navigation
-                    </div>
+                    <div className="font-semibold text-muted-foreground mb-4">Navigation</div>
                     <Link
                         href="/dashboard"
-                        className={
-                            pathname === "/dashboard"
-                                ? "text-primary font-semibold"
-                                : "hover:text-primary"
-                        }
+                        className={`${
+                            pathname === "/dashboard" ? "text-primary font-semibold" : "hover:text-primary"
+                        }`}
                     >
                         Tableau de bord
                     </Link>
                     <Link
                         href="/emails"
-                        className={
-                            pathname === "/emails"
-                                ? "text-primary font-semibold"
-                                : "hover:text-primary"
-                        }
+                        className={`${
+                            pathname === "/emails" ? "text-primary font-semibold" : "hover:text-primary"
+                        }`}
                     >
                         Campagnes
                     </Link>
                     <Link
                         href="/emails/stats"
-                        className={
-                            pathname === "/emails/stats"
-                                ? "text-primary font-semibold"
-                                : "hover:text-primary"
-                        }
+                        className={`${
+                            pathname === "/emails/stats" ? "text-primary font-semibold" : "hover:text-primary"
+                        }`}
                     >
                         Statistiques
                     </Link>
@@ -82,7 +77,12 @@ export default function ReceptionPage() {
                 </header>
                 <div className="p-4">
                     <div className="p-8 bg-white border rounded-lg">
-                        <Mail accounts={accounts} mails={mails} />
+                        <Mail
+                          accounts={accounts}
+                          mails={mails}
+                          defaultLayout={[0, 0]}
+                          navCollapsedSize={24}
+                        />
                     </div>
                 </div>
             </SidebarInset>

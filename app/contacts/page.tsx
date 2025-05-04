@@ -26,7 +26,6 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-
 import { ContactsTable } from './_components/contacts-table';
 import { CreateContactDrawer } from './_components/CreateContactDrawer';
 import { AddToListDialog } from './_components/AddToListDialog';
@@ -51,6 +50,8 @@ export default function ContactsPage() {
     const [showEmailModal, setShowEmailModal] = useState(false);
 
     const [exportFormat, setExportFormat] = useState('CSV');
+
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
     const router = useRouter();
 
@@ -232,6 +233,8 @@ export default function ContactsPage() {
                         </Dialog>
 
                         <CreateContactDrawer
+                            open={drawerOpen}
+                            onOpenChange={setDrawerOpen}
                             triggerButton={
                                 <Button size="sm" className="bg-purple-600 text-white hover:bg-purple-700">
                                     Ajouter un contact
@@ -287,7 +290,7 @@ export default function ContactsPage() {
                                     refreshTrigger={refreshCounter}
                                     onTotalContactsChange={(total) => setTotalContacts(total)}
                                     searchQuery={searchQuery}
-                                    onSelectionChange={setSelectedContacts}
+                                    onSelectionChange={(ids) => setSelectedContacts(ids.map(Number))}
                                 />
                                 <div className="flex justify-center items-center mt-6 space-x-4">
                                     <Button variant="outline" size="sm" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>Précédent</Button>
@@ -305,7 +308,7 @@ export default function ContactsPage() {
                               refreshTrigger={refreshCounter}
                               onTotalContactsChange={(total) => setTotalContacts(total)}
                               searchQuery={searchQuery}
-                              onSelectionChange={setSelectedContacts}
+                              onSelectionChange={(ids) => setSelectedContacts(ids.map(Number))}
                               filterUpdatedSince={7}
                             />
                           </>

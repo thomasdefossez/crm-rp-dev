@@ -1,7 +1,7 @@
-import addDays from "date-fns/addDays"
-import addHours from "date-fns/addHours"
-import format from "date-fns/format"
-import nextSaturday from "date-fns/nextSaturday"
+import { addDays } from "date-fns";
+import { addHours } from "date-fns";
+import { format } from "date-fns";
+import { nextSaturday } from "date-fns";
 import {
   Archive,
   ArchiveX,
@@ -80,7 +80,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             </TooltipTrigger>
             <TooltipContent>Move to trash</TooltipContent>
           </Tooltip>
-          <Separator orientation="vertical" className="mx-1 h-6" />
+          <Separator className="mx-1 h-6 vertical-separator" />
           <Tooltip>
             <Popover>
               <PopoverTrigger asChild>
@@ -170,7 +170,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             <TooltipContent>Forward</TooltipContent>
           </Tooltip>
         </div>
-        <Separator orientation="vertical" className="mx-2 h-6" />
+        <Separator className="mx-2 h-6 vertical-separator" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" disabled={!mail}>

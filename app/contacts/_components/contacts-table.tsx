@@ -11,9 +11,10 @@ interface ContactsTableProps {
     onTotalContactsChange: (total: number) => void;
     searchQuery?: string;
     onSelectionChange?: (selected: string[]) => void; // <-- Ajout
+    filterUpdatedSince?: number;
 }
 
-export function ContactsTable({ refreshTrigger, onTotalContactsChange, searchQuery, onSelectionChange }: ContactsTableProps) {
+export function ContactsTable({ refreshTrigger, onTotalContactsChange, searchQuery, onSelectionChange, filterUpdatedSince }: ContactsTableProps) {
     const [contacts, setContacts] = useState<any[]>([]);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
 
@@ -26,12 +27,20 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange, searchQue
 
         if (safeSearch.length >= 3) {
             const response = await supabase.rpc('search_contacts', { search_text: safeSearch });
-            data = response.data;
+            data = response.data ?? [];
             error = response.error;
             count = data ? data.length : 0;
         } else {
-            const response = await supabase.from('contacts').select('*', { count: 'exact' });
-            data = response.data;
+            let query = supabase.from('contacts').select('*', { count: 'exact' });
+
+            if (filterUpdatedSince) {
+                const fromDate = new Date();
+                fromDate.setDate(fromDate.getDate() - filterUpdatedSince);
+                query = query.gte('updated_at', fromDate.toISOString());
+            }
+
+            const response = await query;
+            data = response.data ?? [];
             error = response.error;
             count = response.count || 0;
         }
@@ -45,7 +54,7 @@ export function ContactsTable({ refreshTrigger, onTotalContactsChange, searchQue
 
     useEffect(() => {
         fetchContacts();
-    }, [refreshTrigger, searchQuery]);
+    }, [refreshTrigger, searchQuery, filterUpdatedSince]);
 
     // Envoie les contacts sélectionnés au parent
     useEffect(() => {

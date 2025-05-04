@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { supabase } from '@/lib/supabaseClient'; // Assure-toi que supabaseClient est correctement configuré.
 
+type ScheduledEmail = {
+  id: string;
+  // ajoute d'autres champs si besoin
+};
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
@@ -26,7 +31,9 @@ export async function POST(req: Request) {
                     email_body: emailBody,
                     scheduled_datetime: scheduledDateTime.toISOString(),
                 }
-            ]);
+            ])
+            .select()
+            .returns<ScheduledEmail[]>();
 
         if (error) {
             console.error('❌ Erreur lors de l\'enregistrement de l\'email dans la base de données', error);

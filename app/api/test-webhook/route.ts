@@ -8,8 +8,12 @@ export async function POST(req: Request) {
 
         // Retourner la réponse succès au client
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error('❌ Erreur Webhook:', error.message);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error('❌ Erreur Webhook:', error.message);
+        } else {
+            console.error('❌ Erreur Webhook inconnue:', error);
+        }
         return NextResponse.json({ error: 'Erreur traitement Webhook' }, { status: 500 });
     }
 }

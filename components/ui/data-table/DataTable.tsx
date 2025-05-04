@@ -113,7 +113,7 @@ export function DataTable<TData, TValue>({
                         address,
                         zipcode
                     `, { count: 'exact' })
-                data = response.data
+                data = response.data ?? []
                 error = response.error
                 count = response.count || 0
             }
@@ -265,7 +265,13 @@ export function DataTable<TData, TValue>({
                               onCheckedChange={() => column.toggleVisibility()}
                               className="pointer-events-none"
                             />
-                            <span>{flexRender(column.columnDef.header, { table, column })}</span>
+                            <span>
+                              {flexRender(column.columnDef.header, {
+                                table,
+                                column,
+                                header: { id: column.id } as any // minimal mock for HeaderContext
+                              })}
+                            </span>
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -420,9 +426,8 @@ export function DataTable<TData, TValue>({
                 <Select
                     value={table.getState().pagination.pageSize.toString()}
                     onValueChange={value => table.setPageSize(Number(value))}
-                    className="w-24"
                 >
-                    <SelectTrigger size="sm" variant="outline">
+                    <SelectTrigger size="sm">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

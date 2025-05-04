@@ -48,10 +48,7 @@ export default function Page() {
 
                 <div className="p-4">
                     <ContactsToolbar onAddContact={() => setOpenDrawer(true)} />
-                    <DataTable
-                        refreshTrigger={refreshCounter}
-                        columns={[]} // <-- charge automatiquement les colonnes depuis l'intérieur
-                    />
+                    <DataTable refreshTrigger={refreshCounter} />
                 </div>
             </SidebarInset>
 

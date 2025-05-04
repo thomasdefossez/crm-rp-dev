@@ -1,6 +1,21 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+// --- Types pour les destinataires ---
+type ContactRecipient = {
+  id: number;
+  email: string;
+  name: string;
+  type: 'Contact';
+};
+
+type ListRecipient = {
+  id: number;
+  name: string;
+  type: 'List';
+};
+
+type Recipient = ContactRecipient | ListRecipient;
 import Select from 'react-select';
 import { supabase } from '../../lib/supabaseClient';
 import { Button } from '@/components/ui/button';
@@ -44,7 +59,7 @@ export default function Page() {
     }, [senderEmail, senderName, subject]);
 
     const [isRecipientsDialogOpen, setIsRecipientsDialogOpen] = useState(false); // 👈 pop-in destinataires
-    const [recipients, setRecipients] = useState<any[]>([]); // 👈 destinataires ajoutés
+    const [recipients, setRecipients] = useState<Recipient[]>([]); // 👈 destinataires ajoutés
 
     // --- Ajout pour la planification ---
     const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
@@ -135,8 +150,8 @@ export default function Page() {
     };
 
     // 👇 Gestion des destinataires
-    const handleAddRecipients = async (newRecipients: any[]) => {
-        const expandedRecipients = [];
+    const handleAddRecipients = async (newRecipients: Recipient[]) => {
+        const expandedRecipients: ContactRecipient[] = [];
 
         for (const recipient of newRecipients) {
             if (recipient.type === 'List') {
@@ -151,18 +166,29 @@ export default function Page() {
                 }
 
                 if (data) {
-                    data.forEach((entry) => {
-                        const contact = entry.contacts;
-                        expandedRecipients.push({
-                            id: contact.id,
-                            email: contact.email,
-                            name: `${contact.firstname} ${contact.lastname}`,
-                            type: 'Contact',
-                        });
-                    });
+                    for (const entry of data) {
+                        if (entry.contacts && Array.isArray(entry.contacts)) {
+                            for (const contact of entry.contacts) {
+                                expandedRecipients.push({
+                                    id: contact.id,
+                                    email: contact.email,
+                                    name: `${contact.firstname} ${contact.lastname}`,
+                                    type: 'Contact',
+                                });
+                            }
+                        } else if (entry.contacts && typeof entry.contacts === 'object' && 'id' in entry.contacts) {
+                            const contact = entry.contacts as { id: number; email: string; firstname: string; lastname: string };
+                            expandedRecipients.push({
+                                id: contact.id,
+                                email: contact.email,
+                                name: `${contact.firstname} ${contact.lastname}`,
+                                type: 'Contact',
+                            });
+                        }
+                    }
                 }
             } else {
-                expandedRecipients.push(recipient);
+                expandedRecipients.push(recipient as ContactRecipient);
             }
         }
 
@@ -186,12 +212,13 @@ export default function Page() {
         }
 
         const invalidRecipients = recipients.filter((r) => {
-            const email = r.email?.trim().toLowerCase();
+            if (r.type !== 'Contact') return false;
+            const email = r.type === 'Contact' ? r.email?.trim().toLowerCase() : undefined;
             return !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         });
 
         if (invalidRecipients.length > 0) {
-            toast.error(`Emails invalides détectés : ${invalidRecipients.map(r => r.email).join(', ')}`);
+            toast.error(`Emails invalides détectés : ${invalidRecipients.map(r => r.type === 'Contact' ? r.email : '').join(', ')}`);
             console.table(invalidRecipients);
             return;
         }
@@ -516,12 +543,12 @@ export default function Page() {
                                                     </Button>
                                                 </PopoverTrigger>
                                                 <PopoverContent align="start" className="w-auto p-0">
-                                                    <Calendar
-                                                        mode="single"
-                                                        selected={scheduledDate}
-                                                        onSelect={setScheduledDate}
-                                                        initialFocus
-                                                    />
+                                            <Calendar
+                                                mode="single"
+                                                selected={scheduledDate ?? undefined}
+                                                onSelect={(date) => setScheduledDate(date ?? null)}
+                                                initialFocus
+                                            />
                                                 </PopoverContent>
                                             </Popover>
                                         </div>
@@ -550,7 +577,11 @@ export default function Page() {
                                             <Select
                                                 options={timezones}
                                                 value={selectedTimezone}
-                                                onChange={setSelectedTimezone}
+                                                onChange={(newValue) => {
+                                                  if (newValue) {
+                                                    setSelectedTimezone(newValue);
+                                                  }
+                                                }}
                                                 className="w-[300px] text-sm"
                                             />
                                         </div>
@@ -644,11 +675,8 @@ export default function Page() {
             {/* Dialogs */}
             <AddRecipientsDialog
                 open={isRecipientsDialogOpen}
-                onOpenChange={setIsRecipientsDialogOpen}
-                onAddRecipients={handleAddRecipients}
-                DialogContentProps={{
-                    'aria-describedby': 'description-recipients'
-                }}
+                onOpenChange={(open) => setIsRecipientsDialogOpen(open)}
+                onAddRecipients={(recipients) => { void handleAddRecipients(recipients as Recipient[]); }}
                 descriptionId="description-recipients"
             />
             {/* Dialog tokens */}

@@ -4,6 +4,11 @@ import { supabase } from '@/lib/supabaseClient';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+type CreateEmailResponseSuccess = {
+  id: string;
+  // autres champs éventuels
+};
+
 export async function POST(req: Request) {
     try {
         const { recipients, senderName, senderEmail, subject, emailBody } = await req.json();
@@ -14,18 +19,22 @@ export async function POST(req: Request) {
         const toEmails = recipients.map((r: any) => r.email);
 
         // Envoi de l'email avec Resend
-        const data = await resend.emails.send({
+        const response: { data: CreateEmailResponseSuccess | null } = await resend.emails.send({
             from: `${senderName} <${senderEmail}>`,
             to: toEmails,
             subject,
             html: emailBody,
         });
 
+        if (!response.data) {
+            return NextResponse.json({ success: false, error: { message: 'Aucune réponse valide de Resend' } }, { status: 500 });
+        }
+
         // Log de la réponse de Resend
-        console.log('Réponse de Resend:', data);
+        console.log('Réponse de Resend:', response);
 
         // Utilisation des données envoyées pour remplir l'insertion dans Supabase
-        const { id } = data.data;
+        const { id } = response.data;
         const created_at = new Date().toISOString(); // Utilisation de l'heure actuelle
         const emailSubject = subject; // Utilisation du sujet envoyé
         const to = JSON.stringify(toEmails); // Utilisation des emails des destinataires
@@ -55,7 +64,7 @@ export async function POST(req: Request) {
         }
 
         // Retourner une réponse de succès
-        return NextResponse.json({ success: true, data });
+        return NextResponse.json({ success: true, data: response.data });
     } catch (error: any) {
         console.error('Erreur lors de l\'envoi de l\'email :', error);
         return NextResponse.json({ success: false, error: { message: error.message } }, { status: 500 });

@@ -50,7 +50,6 @@ export default function Page() {
                     <CampagneToolbar />
                     <DataTable
                         refreshTrigger={refreshCounter}
-                        columns={[]} // <-- charge automatiquement les colonnes depuis l'intérieur
                     />
                 </div>
             </SidebarInset>

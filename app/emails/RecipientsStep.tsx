@@ -142,6 +142,7 @@ export default function RecipientsStep() {
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
                 onAddRecipients={handleAddRecipients}
+                descriptionId="description-recipients"
             />
         </div>
     );

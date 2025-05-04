@@ -25,6 +25,7 @@ export default function Page() {
   const hasBodyError = emailBody.replace('[unsubscribe]', '').trim() === '';
   const hasUnsubscribeLink = emailBody.includes('[unsubscribe]');
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSendTestDialogOpen, setIsSendTestDialogOpen] = useState(false);
 
   return (
     <SidebarProvider>
@@ -123,16 +124,17 @@ export default function Page() {
             {/* Colonne droite */}
             <div className="w-[300px] bg-white">
               <div className="mb-6 flex gap-3">
+                <button
+                  className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+                  disabled={hasBodyError || !hasUnsubscribeLink}
+                  onClick={() => setIsSendTestDialogOpen(true)}
+                >
+                  Envoyer un email
+                </button>
                 <SendTestEmailDialog
+                  open={isSendTestDialogOpen}
+                  onOpenChange={setIsSendTestDialogOpen}
                   emailBody={emailBody}
-                  trigger={
-                    <button
-                      className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
-                      disabled={hasBodyError || !hasUnsubscribeLink}
-                    >
-                      Envoyer un email
-                    </button>
-                  }
                 />
                 <button
                   className={`rounded-md px-4 py-2 text-sm text-white ${

@@ -46,7 +46,7 @@ export default function ImportSettingsPage() {
             <button className="border border-gray-300 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
               Cancel
             </button>
-            <FileUploadButton className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700" />
+            <FileUploadButton />
           </div>
         </div>
       </main>
