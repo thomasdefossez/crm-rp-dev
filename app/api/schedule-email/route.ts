@@ -37,7 +37,18 @@ export async function POST(req: Request) {
         console.log('📬 Email planifié dans Supabase:', data);
 
         // Simuler la planification (ajouter la logique de cron ou de worker pour envoyer l'email plus tard)
-        return NextResponse.json({ success: true, message: 'Email planifié avec succès !', scheduledEmailId: data[0].id });
+        if (!data || data.length === 0 || !data[0]) {
+            return NextResponse.json({
+                success: false,
+                error: { message: "Aucune donnée retournée depuis Supabase" },
+            }, { status: 500 });
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: 'Email planifié avec succès !',
+            scheduledEmailId: data[0].id,
+        });
     } catch (error: any) {
         console.error('❌ Erreur lors de la planification :', error);
         return NextResponse.json({ success: false, error: { message: error.message } }, { status: 500 });
