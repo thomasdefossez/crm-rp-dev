@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { CheckCircle, LoaderCircle, Clock } from 'lucide-react';
 
 const roadmap = [
   {
@@ -9,10 +10,10 @@ const roadmap = [
     objectif: 'Avoir l’ossature technique prête',
     progress: 100,
     livrables: [
-      'Authentification avec Supabase Auth',
-      'Frontend React / Next.js avec Tailwind CSS',
-      'Supabase branché en base relationnelle',
-      'Structure projet front-end / back-end',
+      'Authentification avec Supabase Auth ✅',
+      'Frontend React / Next.js avec Tailwind CSS ✅',
+      'Supabase branché en base relationnelle ✅',
+      'Structure projet front-end / back-end ✅',
     ],
   },
   {
@@ -21,21 +22,21 @@ const roadmap = [
     objectif: 'Gérer un compte utilisateur et une base de contacts',
     progress: 40,
     livrables: [
-      'Page profil utilisateur',
-      'Structure des rôles / plans',
-      'Connexion UID Supabase <> base utilisateur',
+      'Page profil utilisateur 🟣',
+      'Structure des rôles / plans ⏳',
+      'Connexion UID Supabase <> base utilisateur ⏳',
     ],
   },
   {
     phase: 'PHASE 2',
     titre: 'Gestion des contacts RP',
     objectif: 'Créer et gérer sa base journalistes',
-    progress: 30,
+    progress: 75,
     livrables: [
-      'Table contacts',
-      'Formulaire création + édition',
-      'Import CSV',
-      'Tagging / filtre / recherche',
+      'Table contacts ✅',
+      'Formulaire création + édition ✅',
+      'Import CSV ⏳',
+      'Tagging / filtre / recherche 🟣',
     ],
   },
   {
@@ -44,10 +45,10 @@ const roadmap = [
     objectif: 'Rédiger, envoyer, tracker un communiqué',
     progress: 10,
     livrables: [
-      'Éditeur WYSIWYG',
-      'Choix des contacts à cibler',
-      'Suivi des envois',
-      'Email via Resend',
+      'Éditeur WYSIWYG ⏳',
+      'Choix des contacts à cibler ⏳',
+      'Suivi des envois ⏳',
+      'Email via Resend 🟣',
     ],
   },
   {
@@ -56,10 +57,10 @@ const roadmap = [
     objectif: 'Activer les plans payants et gérer le paiement',
     progress: 0,
     livrables: [
-      'Intégration Stripe checkout',
-      'Webhooks user_subscriptions',
-      'Page pricing + upgrade/downgrade',
-      'Verrouillage fonctions selon plan',
+      'Intégration Stripe checkout ⏳',
+      'Webhooks user_subscriptions ⏳',
+      'Page pricing + upgrade/downgrade ⏳',
+      'Verrouillage fonctions selon plan ⏳',
     ],
   },
   {
@@ -68,9 +69,9 @@ const roadmap = [
     objectif: 'Créer une page publique de communiqués',
     progress: 0,
     livrables: [
-      'Page “/newsroom/nom-du-client”',
-      'Liste des communiqués publiés',
-      'SEO et design simple',
+      'Page “/newsroom/nom-du-client” ⏳',
+      'Liste des communiqués publiés ⏳',
+      'SEO et design simple ⏳',
     ],
   },
   {
@@ -79,43 +80,128 @@ const roadmap = [
     objectif: 'Ajouter un petit effet “wahou”',
     progress: 0,
     livrables: [
-      'Résumé automatique d’un communiqué (GPT)',
-      'Suggestion de journalistes',
-      'Dashboard statistique',
+      'Résumé automatique d’un communiqué (GPT) ⏳',
+      'Suggestion de journalistes ⏳',
+      'Dashboard statistique ⏳',
     ],
   },
 ];
 
-export default function Home() {
-  const [openPhase, setOpenPhase] = useState<string | null>(roadmap[0].phase);
+const stack = [
+  {
+    name: "CI/CD",
+    tech: "GitHub + GitHub Actions",
+    logo: "https://cdn.simpleicons.org/github",
+    notes: "Automatisation des tests, builds et déploiements",
+  },
+  {
+    name: "Frontend deployment",
+    tech: "Vercel",
+    logo: "https://cdn.simpleicons.org/vercel",
+    notes: "Déploiement du frontend Next.js avec SSR/RSC",
+  },
+  {
+    name: "Reporting",
+    tech: "Supabase Studio",
+    logo: "https://cdn.simpleicons.org/supabase",
+    notes: "Pour du reporting custom sur ta base",
+  },
+  {
+    name: "Stockage fichiers",
+    tech: "Supabase Storage",
+    logo: "/logos/supabase.svg",
+    notes: "Pour stocker les fichiers liés aux communiqués (PDF, images)",
+  },
+  {
+    name: "Support client",
+    tech: "Crisp",
+    logo: "https://cdn.simpleicons.org/crisp",
+    notes: "Pour le support client en live chat",
+  },
+  {
+    name: "Monitoring",
+    tech: "Sentry",
+    logo: "https://cdn.simpleicons.org/sentry",
+    notes: "Pour le monitoring des erreurs de l'application",
+  },
+  {
+    name: "Frontend",
+    tech: "Next.js",
+    logo: "https://cdn.simpleicons.org/nextdotjs",
+    notes: "Pages en `/app`, SSR et RSC activés",
+  },
+  {
+    name: "UI",
+    tech: "Tailwind CSS",
+    logo: "https://cdn.simpleicons.org/tailwindcss",
+    notes: "Design inspiré ShadCN, sans dépendance UI",
+  },
+  {
+    name: "Auth",
+    tech: "Supabase Auth",
+    logo: "/logos/supabase.svg",
+    notes: "Emails intégrés pour login/signup/reset",
+  },
+  {
+    name: "Base de données",
+    tech: "Supabase (PostgreSQL)",
+    logo: "https://cdn.simpleicons.org/postgresql",
+    notes: "Relationnelle, branchée aux utilisateurs",
+  },
+  {
+    name: "Paiement",
+    tech: "Stripe",
+    logo: "https://cdn.simpleicons.org/stripe",
+    notes: "Plans payants avec abonnement & webhooks",
+  },
+  {
+    name: "Emails transactionnels",
+    tech: "Resend",
+    logo: "https://avatars.githubusercontent.com/u/108968288?s=200&v=4",
+    notes: "Pour l’envoi de communiqués – 3000 mails/mois gratuits",
+  },
+  {
+    name: "Infrastructure",
+    tech: "Pulumi + AWS",
+    logo: "https://cdn.simpleicons.org/amazonaws",
+    notes: "Déploiement infra-as-code",
+  },
+];
 
+export default function Home() {
   return (
       <main className="p-8 bg-background min-h-screen text-foreground">
-        <h1 className="text-2xl font-semibold tracking-tight mb-10">
-          Projet CRM RP – Vue d’ensemble
-        </h1>
-
         <div className="mb-8 flex flex-wrap gap-4">
           <a
               href="/login"
               className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
           >
-            Accéder à Briefly
+            🔐 Login Briefly
           </a>
           <a
-              href="https://landing.rp.dev"
+              href="https://resend.com"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
           >
-            Accéder à la landing
+            📨 Resend Dashboard
+          </a>
+          <a
+              href="https://supabase.com/dashboard/sign-in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
+          >
+            🛡️ Supabase Dashboard
           </a>
         </div>
+        <h1 className="text-3xl font-bold tracking-tight mb-12">
+          🚀 Projet CRM RP – Vue d’ensemble
+        </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Stack technique */}
-          <section className="bg-card border rounded-lg p-6">
-            <h2 className="text-base font-semibold mb-4">Stack technique</h2>
+        <div className="mb-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <section className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+            <h2 className="text-xl font-semibold mb-6 text-gray-800">🛠️ Stack technique</h2>
             <table className="w-full text-left text-sm border border-gray-200 rounded overflow-hidden">
               <thead className="bg-gray-100">
               <tr>
@@ -125,120 +211,65 @@ export default function Home() {
               </tr>
               </thead>
               <tbody>
-              {[
-                {
-                  name: "Frontend",
-                  tech: "Next.js",
-                  logo: "/logos/nextjs.svg",
-                  notes: "Pages en `/app`, SSR et RSC activés",
-                },
-                {
-                  name: "UI",
-                  tech: "Tailwind CSS",
-                  logo: "/logos/tailwindcss.svg",
-                  notes: "Design inspiré ShadCN, sans dépendance UI",
-                },
-                {
-                  name: "Auth",
-                  tech: "Supabase Auth",
-                  logo: "/logos/supabase.svg",
-                  notes: "Emails intégrés pour login/signup/reset",
-                },
-                {
-                  name: "Base de données",
-                  tech: "Supabase (PostgreSQL)",
-                  logo: "/logos/postgresql.svg",
-                  notes: "Relationnelle, branchée aux utilisateurs",
-                },
-                {
-                  name: "Paiement",
-                  tech: "Stripe",
-                  logo: "/logos/stripe.svg",
-                  notes: "Plans payants avec abonnement & webhooks",
-                },
-                {
-                  name: "Emails transactionnels",
-                  tech: "Resend",
-                  logo: "/logos/resend.svg",
-                  notes: "Pour l’envoi de communiqués – 3000 mails/mois gratuits",
-                },
-                {
-                  name: "Infrastructure",
-                  tech: "Pulumi + AWS",
-                  logo: "/logos/pulumi.svg",
-                  notes: "Déploiement infra-as-code",
-                },
-              ].map((item, index) => (
+              {stack.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50">
-                    <td className="p-3 border-b">{item.name}</td>
+                    <td className="p-3 border-b font-medium text-gray-700">{item.name}</td>
                     <td className="p-3 border-b">
                       <div className="flex items-center gap-2">
                         <img src={item.logo} alt={item.tech} className="h-5 w-5" />
                         {item.tech}
                       </div>
                     </td>
-                    <td className="p-3 border-b">{item.notes}</td>
+                    <td className="p-3 border-b text-gray-600">{item.notes}</td>
                   </tr>
               ))}
               </tbody>
             </table>
           </section>
 
-          {/* Roadmap */}
-          <section className="bg-card border rounded-lg p-6">
-            <h2 className="text-base font-semibold mb-4">Roadmap produit</h2>
-            <div className="space-y-4">
+          <section className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+            <h2 className="text-xl font-semibold mb-6 text-gray-800">📍 Roadmap produit</h2>
+            <div className="space-y-6">
               {roadmap.map((phase) => {
                 const status =
+                    phase.progress === 100 ? 'Terminé' : phase.progress > 0 ? 'En cours' : 'À venir';
+                const statusColor =
                     phase.progress === 100
-                        ? '✅ Terminé'
+                        ? 'bg-green-100 text-green-800'
                         : phase.progress > 0
-                            ? '🟣 En cours'
-                            : '⏳ À venir';
-
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-gray-100 text-gray-600';
                 return (
-                    <div key={phase.phase} className="bg-muted/50 border rounded-lg shadow-sm">
-                      <button
-                          onClick={() => setOpenPhase(openPhase === phase.phase ? null : phase.phase)}
-                          className="w-full text-left p-4 hover:bg-muted flex items-center justify-between"
-                      >
+                    <div key={phase.phase} className="border rounded-lg p-6 bg-white shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
                         <div>
-                          <p className="text-xs uppercase text-muted">{phase.phase}</p>
-                          <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            {phase.titre}
-                            <span
-                                className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                                    phase.progress === 100
-                                        ? 'bg-green-200 text-green-800'
-                                        : phase.progress > 0
-                                            ? 'bg-purple-200 text-purple-800'
-                                            : 'bg-gray-200 text-gray-600'
-                                }`}
-                            >
-                          {status}
-                        </span>
-                          </h3>
+                          <p className="text-xs uppercase text-gray-500">{phase.phase}</p>
+                          <h3 className="text-lg font-semibold text-gray-800">{phase.titre}</h3>
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                      {openPhase === phase.phase ? '▲' : '▼'}
-                    </span>
-                      </button>
-
-                      {openPhase === phase.phase && (
-                          <div className="px-4 pb-4">
-                            <div className="relative w-full h-3 rounded-full bg-gray-200 overflow-hidden mb-4">
-                              <div
-                                  className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
-                                  style={{ width: `${phase.progress}%` }}
-                              />
-                            </div>
-                            <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">
-                              {phase.livrables.map((item, i) => (
-                                  <li key={i}>{item}</li>
-                              ))}
-                            </ul>
-                          </div>
-                      )}
+                        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColor}`}>{status}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-4 italic">{phase.objectif}</p>
+                      <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden mb-4">
+                        <div
+                            className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
+                            style={{ width: `${phase.progress}%` }}
+                        />
+                      </div>
+                      <ul className="space-y-2">
+                        {phase.livrables.map((item, i) => {
+                          let Icon;
+                          if (item.endsWith('✅')) Icon = CheckCircle;
+                          else if (item.endsWith('🟣')) Icon = LoaderCircle;
+                          else Icon = Clock;
+                          const label = item.replace(/(✅|🟣|⏳)/, '').trim();
+                          return (
+                              <li key={i} className="flex items-center gap-3 text-sm text-gray-700">
+                                <Icon className="w-4 h-4 text-violet-600" />
+                                {label}
+                              </li>
+                          );
+                        })}
+                      </ul>
                     </div>
                 );
               })}
