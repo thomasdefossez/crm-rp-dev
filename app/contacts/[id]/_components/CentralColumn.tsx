@@ -7,13 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MessageSquare, Lock } from 'lucide-react';
 import CreateEmailModal from './CreateEmailModal';
+import { useSession } from '@supabase/auth-helpers-react';
+import { toast } from 'sonner';
 
 export default function CentralColumn() {
     const [onglet, setOnglet] = useState('notes');
     const [inputVisible, setInputVisible] = useState(false);
     const [content, setContent] = useState('');
     const [activities, setActivities] = useState<{ type: string; content: string }[]>([]);
-    const [emailModalOpen, setEmailModalOpen] = useState(false); // Gère l'ouverture de la popin
+    const [emailModalOpen, setEmailModalOpen] = useState(false);
+
+    const session = useSession();
+    console.log('👤 Session active :', session?.user ?? 'aucune session');
 
     const handleAdd = () => {
         if (!content) return;
@@ -24,7 +29,6 @@ export default function CentralColumn() {
 
     return (
         <div>
-            {/* Onglets */}
             <Tabs value={onglet} onValueChange={(val) => { setOnglet(val); setInputVisible(false); }} className="mb-4">
                 <TabsList className="flex gap-8 border-b px-4 bg-blanc-600">
                     {['notes', 'rappels', 'emails', 'appels', 'réunions'].map((valeur) => (
@@ -32,18 +36,15 @@ export default function CentralColumn() {
                             key={valeur}
                             value={valeur}
                             className={`pb-3 border-none rounded-none shadow-none px-0 text-sm font-medium ${
-                                onglet === valeur
-                                    ? 'text-violet-600 bg-blanc-800' // Fond violet pour l'onglet sélectionné
-                                    : 'text-violet-600 bg-transparent' // Fond transparent pour les onglets non sélectionnés
+                                onglet === valeur ? 'text-violet-600 bg-blanc-800' : 'text-violet-600 bg-transparent'
                             }`}
                         >
-                            {valeur.charAt(0).toUpperCase() + valeur.slice(1)} {/* Affiche le texte avec la première lettre en majuscule */}
+                            {valeur.charAt(0).toUpperCase() + valeur.slice(1)}
                         </TabsTrigger>
                     ))}
                 </TabsList>
             </Tabs>
 
-            {/* Boutons Ajouter */}
             {onglet !== 'emails' && (
                 <div className="border rounded-lg p-4 space-y-4">
                     {inputVisible ? (
@@ -71,7 +72,6 @@ export default function CentralColumn() {
                         </div>
                     )}
 
-                    {/* Liste des activités */}
                     {activities
                         .filter((a) => a.type === onglet)
                         .map((a, idx) => (
@@ -99,14 +99,20 @@ export default function CentralColumn() {
                 </div>
             )}
 
-            {/* Emails onglet */}
             {onglet === 'emails' && (
                 <div className="space-y-4">
                     <div className="flex justify-end gap-2">
                         <Button variant="outline" className="text-sm">Journal des emails</Button>
                         <div
                             className="flex items-center bg-muted text-muted-foreground px-4 py-2 rounded-md gap-2 cursor-pointer"
-                            onClick={() => setEmailModalOpen(true)} // Ouvre la modal
+                            onClick={() => {
+                                console.log("Session utilisateur (depuis onglet emails):", session);
+                                if (!session?.user) {
+                                    toast.error("Vous devez être connecté pour créer un email.");
+                                    return;
+                                }
+                                setEmailModalOpen(true);
+                            }}
                         >
                             Créer un email
                             <div className="flex items-center justify-center bg-black text-white rounded-md p-1">
@@ -120,7 +126,6 @@ export default function CentralColumn() {
                 </div>
             )}
 
-            {/* Modal Create Email */}
             <CreateEmailModal open={emailModalOpen} onClose={() => setEmailModalOpen(false)} />
         </div>
     );

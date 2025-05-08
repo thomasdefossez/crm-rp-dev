@@ -9,7 +9,7 @@ import { useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { CreateCampaignDialog } from "@/components/emails/CreateCampaignDialog"
 
-export function CampagneToolbar() {
+export function CampagneToolbar({ onCampaignCreated }: { onCampaignCreated?: (id: string) => void }) {
     const [date, setDate] = useState<Date | undefined>(undefined)
     const [openCreate, setOpenCreate] = useState(false)
 
@@ -40,7 +40,10 @@ export function CampagneToolbar() {
 
             <Dialog open={openCreate} onOpenChange={setOpenCreate}>
                 <DialogContent className="max-w-md">
-                    <CreateCampaignDialog onClose={() => setOpenCreate(false)} />
+                    <CreateCampaignDialog
+                        onClose={() => setOpenCreate(false)}
+                        onCampaignCreated={onCampaignCreated}
+                    />
                 </DialogContent>
             </Dialog>
         </div>

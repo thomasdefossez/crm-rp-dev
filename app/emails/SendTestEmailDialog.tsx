@@ -1,11 +1,12 @@
 'use client';
 
+import type { Recipient } from '@/types/recipient'; // Remplace le chemin si différent
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Mail } from 'lucide-react'; // 👈 Ajout icône Mail
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner'; // Toaster
 import { useSession } from '@supabase/auth-helpers-react'; // Supabase Auth
 
@@ -13,7 +14,13 @@ interface SendTestEmailDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     emailBody: string;
+    subject: string;
     trigger?: React.ReactNode; // facultatif pour compatibilité
+    senderName: string;
+    senderEmail: string;
+    onSenderNameChange: (value: string) => void;
+    onSenderEmailChange: (value: string) => void;
+    recipients: Recipient[];
 }
 
 export function SendTestEmailDialog({
@@ -21,8 +28,31 @@ export function SendTestEmailDialog({
     onOpenChange,
     emailBody,
     trigger,
+    senderName,
+    senderEmail,
+    onSenderNameChange,
+    onSenderEmailChange,
+    recipients,
 }: SendTestEmailDialogProps) {
     const session = useSession();
+
+    useEffect(() => {
+      if (session?.user) {
+        const { user_metadata } = session.user;
+        if (user_metadata) {
+          if (!senderName) onSenderNameChange(user_metadata.name || '');
+          if (!senderEmail) onSenderEmailChange(session.user.email || '');
+        }
+      }
+    }, [session]);
+
+    console.log("Session Supabase:", session);
+
+    if (!session?.user) {
+        console.warn("Aucun utilisateur connecté. L'envoi d'email test est limité.");
+        toast.warning("Vous devez être connecté pour envoyer un email test.");
+    }
+
     const userEmail = session?.user?.email || 'success@resend.dev'; // Utilisateur connecté ou fallback Resend
 
     const [subject, setSubject] = useState('');
@@ -38,6 +68,9 @@ export function SendTestEmailDialog({
                     to: userEmail,
                     subject: subject || 'Test Email',
                     html: htmlContent,
+                    senderName,
+                    senderEmail,
+                    recipients,
                 }),
             });
 
@@ -73,7 +106,20 @@ export function SendTestEmailDialog({
                     <div className="space-y-4">
                         <div>
                             <div className="text-xs font-medium text-gray-500 mb-1">Nom de l'expéditeur</div>
-                            <div className="text-sm font-medium text-gray-900">Prowly (onboarding@resend.dev)</div>
+                            <Input
+                                placeholder="Nom de l'expéditeur"
+                                value={senderName}
+                                onChange={(e) => onSenderNameChange(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <div className="text-xs font-medium text-gray-500 mb-1">Email de l'expéditeur</div>
+                            <Input
+                                placeholder="Email de l'expéditeur"
+                                type="email"
+                                value={senderEmail}
+                                onChange={(e) => onSenderEmailChange(e.target.value)}
+                            />
                         </div>
                         <div>
                             <div className="text-xs font-medium text-gray-500 mb-1">Objet</div>

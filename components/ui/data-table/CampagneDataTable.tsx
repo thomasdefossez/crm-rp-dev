@@ -81,15 +81,14 @@ export function DataTable<TData, TValue>({
             }, 100)
 
             const response = await supabase
-                .from('emails')
+                .from('campaigns')
                 .select(`
                     id,
-                    subject,
-                    to,
-                    status,
+                    name,
                     created_at,
-                    open_rate,
-                    click_rate
+                    updated_at,
+                    user_id,
+                    description
                 `, { count: 'exact' })
                 .order('created_at', { ascending: false })
 
@@ -114,52 +113,47 @@ export function DataTable<TData, TValue>({
 
     const columns: ColumnDef<any>[] = [
         {
-            accessorKey: "subject",
-            header: "Objet",
+            accessorKey: "name",
+            header: "Nom",
             cell: ({ row }) => (
-                <span className="text-foreground font-medium">{row.original.subject || "-"}</span>
+                <Link
+                    href={`/emails/campagne/addcampagne?id=${row.original.id}`}
+                    className="text-purple-600 hover:underline font-medium"
+                >
+                    {row.original.name || "-"}
+                </Link>
             )
         },
         {
-            accessorKey: "status",
-            header: "Statut",
+            accessorKey: "description",
+            header: "Description",
             cell: ({ row }) => (
-                <span className="capitalize text-muted-foreground">{row.original.status}</span>
+                <span className="text-muted-foreground">{row.original.description || "-"}</span>
             )
         },
         {
-            accessorKey: "to",
-            header: "Destinataires",
-            cell: ({ row }) => {
-                const recipients = row.original.to
-                const emails = Array.isArray(recipients)
-                    ? recipients.map((r: any) => r.email).join(", ")
-                    : "-"
-                return <span className="text-sm text-muted-foreground">{emails}</span>
-            }
-        },
-        {
-            accessorKey: "open_rate",
-            header: "Taux d'ouverture",
+            accessorKey: "user_id",
+            header: "Utilisateur",
             cell: ({ row }) => (
-                <span>{row.original.open_rate != null ? `${row.original.open_rate}%` : "-"}</span>
-            )
-        },
-        {
-            accessorKey: "click_rate",
-            header: "Taux de clic",
-            cell: ({ row }) => (
-                <span>{row.original.click_rate != null ? `${row.original.click_rate}%` : "-"}</span>
+                <span className="text-muted-foreground">{row.original.user_id || "-"}</span>
             )
         },
         {
             accessorKey: "created_at",
-            header: "Envoyé le",
+            header: "Créée le",
             cell: ({ getValue }) => {
                 const value = getValue() as string
                 return value ? formatDate(value) : "-"
             }
         },
+        {
+            accessorKey: "updated_at",
+            header: "Modifiée le",
+            cell: ({ getValue }) => {
+                const value = getValue() as string
+                return value ? formatDate(value) : "-"
+            }
+        }
     ]
 
     const table = useReactTable({

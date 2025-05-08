@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,17 @@ interface CreateCampaignDialogProps {
 export function CreateCampaignDialog({ onClose }: CreateCampaignDialogProps) {
     const [campaignName, setCampaignName] = useState('');
     const [loading, setLoading] = useState(false);
+    const [description, setDescription] = useState('');
+    const [userId, setUserId] = useState<string | null>(null);
     const router = useRouter();
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => {
+            if (data?.user?.id) {
+                setUserId(data.user.id);
+            }
+        });
+    }, []);
 
     const handleCreate = async () => {
         if (!campaignName.trim()) {
@@ -26,7 +36,7 @@ export function CreateCampaignDialog({ onClose }: CreateCampaignDialogProps) {
         setLoading(true);
         const { data, error } = await supabase
             .from('campaigns')
-            .insert({ name: campaignName })
+            .insert({ name: campaignName, description, user_id: userId })
             .select()
             .single();
 
@@ -52,6 +62,13 @@ export function CreateCampaignDialog({ onClose }: CreateCampaignDialogProps) {
                 placeholder="Nom de la campagne"
                 value={campaignName}
                 onChange={(e) => setCampaignName(e.target.value)}
+            />
+
+            <textarea
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full border rounded-md p-2 h-24 text-sm"
             />
 
             <div className="flex justify-end gap-2">

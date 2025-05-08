@@ -50,6 +50,15 @@ export default function ContactsPage() {
     const [emailsPerPage] = useState<number>(10);
     const router = useRouter();
 
+    const [totalSent, setTotalSent] = useState(0);
+    const [totalRecipientsCount, setTotalRecipientsCount] = useState(0);
+    const [averageOpenRate, setAverageOpenRate] = useState(0);
+    const [averageClickRate, setAverageClickRate] = useState(0);
+    const [averageClickThroughRate, setAverageClickThroughRate] = useState(0);
+
+    const [currentMonthEmails, setCurrentMonthEmails] = useState(0);
+    const [monthVariation, setMonthVariation] = useState(0);
+
     useEffect(() => {
         const fetchCount = async () => {
             const { count, error } = await supabase.from('contacts').select('*', { count: 'exact', head: true });
@@ -66,9 +75,77 @@ export default function ContactsPage() {
                 .order('created_at', { ascending: false })
                 .range((currentPage - 1) * emailsPerPage, currentPage * emailsPerPage - 1);
             if (!error && data) {
-                setRecentContacts(data);
+                // fetch email_open_events
+                const { data: allOpens } = await supabase.from('email_open_events').select('*');
+                const opensByEmailId = allOpens?.reduce((acc: Record<string, number>, event) => {
+                  if (event.email_id) {
+                    acc[event.email_id] = (acc[event.email_id] || 0) + 1;
+                  }
+                  return acc;
+                }, {}) || {};
+
+                const enrichedData = data.map((email) => {
+                  const parsedTo = typeof email.to === 'string' ? JSON.parse(email.to) : email.to;
+                  const totalRecipients = Array.isArray(parsedTo) ? parsedTo.length : 0;
+                  const openCount = opensByEmailId[email.id] || 0;
+                  return {
+                    ...email,
+                    to: parsedTo,
+                    open_count: openCount,
+                    open_rate: totalRecipients > 0 ? Math.round((openCount / totalRecipients) * 100) : 0,
+                    click_count: email.click_count || 0,
+                    click_rate: totalRecipients > 0 && email.click_count
+                      ? Math.round((email.click_count / totalRecipients) * 100)
+                      : 0,
+                  };
+                });
+
+                setRecentContacts(enrichedData);
                 setTotalEmails(count || 0);
+
+                const sent = enrichedData.length;
+                const recipients = enrichedData.reduce((acc, email) => {
+                  try {
+                    return acc + (Array.isArray(email.to) ? email.to.length : 0);
+                  } catch {
+                    return acc;
+                  }
+                }, 0);
+                // On utilise les nouveaux champs enrichis pour les stats
+                const openSum = enrichedData.reduce((acc, email) => acc + (email.open_rate || 0), 0);
+                const clickSum = enrichedData.reduce((acc, email) => acc + (email.click_rate || 0), 0);
+                const ctrSum = enrichedData.reduce((acc, email) => acc + (email.click_through_rate || 0), 0);
+
+                // Ajout: calcul dynamique du taux d'ouverture réel
+                const totalOpens = allOpens?.length || 0;
+                const openRateCalculated = recipients > 0 ? Math.round((totalOpens / recipients) * 100) : 0;
+
+                setTotalSent(sent);
+                setTotalRecipientsCount(recipients);
+                setAverageOpenRate(openRateCalculated);
+                setAverageClickRate(sent ? Math.round(clickSum / sent) : 0);
+                setAverageClickThroughRate(sent ? Math.round(ctrSum / sent) : 0);
             }
+
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+            const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+            const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
+
+            const { count: countCurrentMonth } = await supabase
+              .from('emails')
+              .select('*', { count: 'exact', head: true })
+              .gte('created_at', startOfMonth);
+
+            const { count: countPreviousMonth } = await supabase
+              .from('emails')
+              .select('*', { count: 'exact', head: true })
+              .gte('created_at', startOfPrevMonth)
+              .lte('created_at', endOfPrevMonth);
+
+            setCurrentMonthEmails(countCurrentMonth || 0);
+            const variation = countPreviousMonth ? ((countCurrentMonth - countPreviousMonth) / countPreviousMonth) * 100 : 0;
+            setMonthVariation(Math.round(variation));
         };
         fetchEmails();
     }, [currentPage]);
@@ -145,35 +222,43 @@ export default function ContactsPage() {
                       <Send className="text-primary h-5 w-5" />
                       <span>Emails sent</span>
                     </div>
-                    <div className="text-2xl font-bold text-foreground">5</div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-2xl font-bold text-foreground">{totalSent}</div>
+                      <div className="text-xs text-muted-foreground flex flex-col">
+                        <span>{currentMonthEmails} ce mois-ci</span>
+                        <span className={`${monthVariation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {monthVariation >= 0 ? '+' : ''}{monthVariation}%
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
                       <User className="text-primary h-5 w-5" />
                       <span>Recipients</span>
                     </div>
-                    <div className="text-2xl font-bold text-foreground">3</div>
+                    <div className="text-2xl font-bold text-foreground">{totalRecipientsCount}</div>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
                       <TrendingUp className="text-primary h-5 w-5" />
                       <span>Open rate</span>
                     </div>
-                    <div className="text-2xl font-bold text-foreground">75%</div>
+                    <div className="text-2xl font-bold text-foreground">{averageOpenRate}%</div>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
                       <MousePointer className="text-primary h-5 w-5" />
                       <span>Click rate</span>
                     </div>
-                    <div className="text-2xl font-bold text-foreground">40%</div>
+                    <div className="text-2xl font-bold text-foreground">{averageClickRate}%</div>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
                       <LinkIcon className="text-primary h-5 w-5" />
                       <span>Click through rate</span>
                     </div>
-                    <div className="text-2xl font-bold text-foreground">30%</div>
+                    <div className="text-2xl font-bold text-foreground">{averageClickThroughRate}%</div>
                   </div>
                 </div>
                 <button className="mt-6 text-sm font-medium text-primary hover:underline">Show more →</button>
@@ -218,8 +303,12 @@ export default function ContactsPage() {
                           </TableCell>
                           <TableCell className="text-sm">{email.status}</TableCell>
                           <TableCell className="text-sm">{Array.isArray(email.to) ? email.to.join(', ') : 'N/A'}</TableCell>
-                          <TableCell className="text-sm">{email.open_rate ? `${email.open_rate}%` : '0%'}</TableCell>
-                          <TableCell className="text-sm">{email.click_rate ? `${email.click_rate}%` : '0%'}</TableCell>
+                          <TableCell className="text-sm">
+                            {typeof email.open_rate === 'number' ? `${email.open_rate}%` : '0%'}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {typeof email.click_rate === 'number' ? `${email.click_rate}%` : '0%'}
+                          </TableCell>
                           <TableCell className="text-sm">{formattedDate}</TableCell>
                         </TableRow>
                       );

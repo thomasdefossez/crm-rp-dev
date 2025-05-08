@@ -10,61 +10,60 @@ type CreateEmailResponseSuccess = {
 };
 
 export async function POST(req: Request) {
+    console.log("🔍 [API] /send-now appelé");
+
     try {
-        const { recipients, senderName, senderEmail, subject, emailBody } = await req.json();
+        const rawBody = await req.text();
+        console.log("📩 Corps brut de la requête:", rawBody);
+
+        const { recipients, senderName, senderEmail, subject, emailBody } = JSON.parse(rawBody);
 
         // Log des données reçues
         console.log('Données reçues:', { recipients, senderName, senderEmail, subject });
+        console.log('🔎 Recipients (bruts):', JSON.stringify(recipients, null, 2));
 
-        const toEmails = recipients.map((r: any) => r.email);
+        const toEmails = Array.isArray(recipients)
+            ? recipients
+                .map((r: any) => typeof r === 'string' ? r : (r?.email || r?.name))
+                .filter((email: string) => typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+                .map((email: string) => email.trim())
+            : [];
 
-        // Envoi de l'email avec Resend
-        const response: { data: CreateEmailResponseSuccess | null } = await resend.emails.send({
-            from: `${senderName} <${senderEmail}>`,
-            to: toEmails,
+        if (toEmails.length === 0) {
+            return NextResponse.json(
+                { success: false, error: { message: 'Aucune adresse email valide trouvée parmi les destinataires.' } },
+                { status: 400 }
+            );
+        }
+
+        const sentEmailIds: string[] = [];
+
+        for (const email of toEmails) {
+          const personalizedHtml = (emailBody && emailBody.trim().length > 0 ? emailBody : '<p>Contenu vide</p>') +
+            `<img src="http://localhost:3000/api/open-track?campaign=${encodeURIComponent(subject)}&recipient=${encodeURIComponent(email)}" width="1" height="1" style="display:none;" />`;
+
+          const res = await resend.emails.send({
+            from: `${senderName || 'Briefly'} <${senderEmail || 'onboarding@resend.dev'}>`,
+            to: [email],
             subject,
-            html: emailBody,
-        });
+            html: personalizedHtml,
+          });
 
-        if (!response.data) {
-            return NextResponse.json({ success: false, error: { message: 'Aucune réponse valide de Resend' } }, { status: 500 });
+          console.log(`📤 Email envoyé à ${email}`, res);
+
+          if (res?.data?.id) {
+            sentEmailIds.push(res.data.id);
+            await supabase.from('emails').insert([{
+              id: res.data.id,
+              subject,
+              to: JSON.stringify([email]),
+              status: 'sent',
+              created_at: new Date().toISOString(),
+            }]);
+          }
         }
 
-        // Log de la réponse de Resend
-        console.log('Réponse de Resend:', response);
-
-        // Utilisation des données envoyées pour remplir l'insertion dans Supabase
-        const { id } = response.data;
-        const created_at = new Date().toISOString(); // Utilisation de l'heure actuelle
-        const emailSubject = subject; // Utilisation du sujet envoyé
-        const to = JSON.stringify(toEmails); // Utilisation des emails des destinataires
-
-        // Log avant l'insertion dans Supabase
-        console.log('Données à insérer dans Supabase:', {
-            id,
-            emailSubject,
-            to,
-            created_at,
-        });
-
-        // Insérer dans Supabase
-        const { error } = await supabase.from('emails').insert([
-            {
-                id: id,
-                subject: emailSubject,  // Utilisation de 'emailSubject'
-                to: to, // Utilisation de 'to' formaté en JSON
-                status: 'sent',
-                created_at: created_at,
-            },
-        ]);
-
-        if (error) {
-            console.error('❌ Erreur Supabase:', error.message);
-            return NextResponse.json({ success: false, error: { message: error.message } }, { status: 500 });
-        }
-
-        // Retourner une réponse de succès
-        return NextResponse.json({ success: true, data: response.data });
+        return NextResponse.json({ success: true, data: { sentEmailIds } });
     } catch (error: any) {
         console.error('Erreur lors de l\'envoi de l\'email :', error);
         return NextResponse.json({ success: false, error: { message: error.message } }, { status: 500 });

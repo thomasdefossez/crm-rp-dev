@@ -15,7 +15,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 
 import { DataTable } from "@/components/ui/data-table/CampagneDataTable"
-import { ColumnDef } from "@tanstack/react-table"
 import { CampagneToolbar } from "@/components/ui/campagne-toolbar"
 import { CreateContactDrawer } from "../_components/CreateContactDrawer"
 import { toast } from "sonner"
@@ -35,7 +34,7 @@ export default function Page() {
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem className="hidden md:block">
-                                    <BreadcrumbLink href="/contacts">Emails</BreadcrumbLink>
+                                    <BreadcrumbLink href="/emails">Emails</BreadcrumbLink>
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator className="hidden md:block" />
                                 <BreadcrumbItem>
@@ -47,9 +46,14 @@ export default function Page() {
                 </header>
 
                 <div className="p-4">
-                    <CampagneToolbar />
+                    <CampagneToolbar
+                        onCampaignCreated={(id) => {
+                            window.location.href = `/emails/add?id=${id}`
+                        }}
+                    />
                     <DataTable
                         refreshTrigger={refreshCounter}
+                        tableName="campaigns"
                     />
                 </div>
             </SidebarInset>
