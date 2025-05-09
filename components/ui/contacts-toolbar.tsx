@@ -2,28 +2,34 @@
 
 import { Button } from "@/components/ui/button"
 import { CalendarIcon, SettingsIcon, PlusIcon } from "lucide-react"
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { format } from "date-fns"
+import { DatePickerWithRange } from "@/components/ui/date-picker-with-range"
 import { useState } from "react"
 
-export function ContactsToolbar({ onAddContact }: { onAddContact: () => void }) {
-    const [date, setDate] = useState<Date | undefined>(undefined)
+type ContactsToolbarProps = {
+  onAddContact: () => void
+  onDateRangeChange: (range: { from: Date; to?: Date } | undefined) => void
+  popoverProps?: {
+    align?: "start" | "center" | "end"
+    sideOffset?: number
+    avoidCollisions?: boolean
+    className?: string
+  }
+}
+
+export function ContactsToolbar({
+  onAddContact,
+  onDateRangeChange,
+  popoverProps,
+}: ContactsToolbarProps) {
+    const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>()
 
     return (
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant="outline" className="flex items-center gap-2">
-                            <CalendarIcon className="h-4 w-4" />
-                            {date ? format(date, "PPP") : "Sélectionner une date"}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0" align="start">
-                        <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
-                    </PopoverContent>
-                </Popover>
+                <DatePickerWithRange date={dateRange} setDate={(range) => {
+                  setDateRange(range)
+                  onDateRangeChange(range)
+                }} />
             </div>
 
             <div className="flex items-center gap-2">

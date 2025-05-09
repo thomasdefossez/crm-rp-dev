@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { AddToListDialog } from "@/app/contacts/_components/AddToListDialog"
 import {
@@ -55,6 +56,8 @@ interface DataTableProps<TData, TValue> {
     onTotalContactsChange?: (total: number) => void
     searchQuery?: string
     onSelectionChange?: (selectedIds: string[]) => void
+    selectedDate?: Date
+    selectedDateRange?: { from: Date; to?: Date }
 }
 
 export function DataTable<TData, TValue>({
@@ -62,6 +65,8 @@ export function DataTable<TData, TValue>({
     onTotalContactsChange,
     searchQuery,
     onSelectionChange,
+    selectedDate,
+    selectedDateRange,
 }: DataTableProps<TData, TValue>) {
     const [data, setData] = useState<TData[]>([])
     const [isLoading, setIsLoading] = useState(true);
@@ -90,29 +95,60 @@ export function DataTable<TData, TValue>({
                 error = response.error
                 count = data ? data.length : 0
             } else {
-                const response = await supabase
-                    .from('contacts')
-                    .select(`
-                        id,
-                        firstname,
-                        lastname,
-                        email,
-                        phone,
-                        role,
-                        created_at,
-                        editeur,
-                        support,
-                        site,
-                        organisation_id,
-                        contact_type,
-                        title,
-                        gender,
-                        salutation,
-                        company_name,
-                        language,
-                        address,
-                        zipcode
-                    `, { count: 'exact' })
+                let response;
+                if (selectedDateRange?.from && selectedDateRange.to) {
+                    const from = selectedDateRange.from.toISOString().split("T")[0];
+                    const to = selectedDateRange.to.toISOString().split("T")[0];
+                    response = await supabase
+                        .from('contacts')
+                        .select(`
+                            id,
+                            firstname,
+                            lastname,
+                            email,
+                            phone,
+                            role,
+                            created_at,
+                            editeur,
+                            support,
+                            site,
+                            organisation_id,
+                            contact_type,
+                            title,
+                            gender,
+                            salutation,
+                            company_name,
+                            language,
+                            address,
+                            zipcode
+                        `, { count: 'exact' })
+                        .gte('created_at', from)
+                        .lte('created_at', to)
+                } else {
+                    response = await supabase
+                        .from('contacts')
+                        .select(`
+                            id,
+                            firstname,
+                            lastname,
+                            email,
+                            phone,
+                            role,
+                            created_at,
+                            editeur,
+                            support,
+                            site,
+                            organisation_id,
+                            contact_type,
+                            title,
+                            gender,
+                            salutation,
+                            company_name,
+                            language,
+                            address,
+                            zipcode
+                        `, { count: 'exact' })
+                }
                 data = response.data ?? []
                 error = response.error
                 count = response.count || 0
@@ -127,7 +163,7 @@ export function DataTable<TData, TValue>({
             }
         }
         fetchData()
-    }, [refreshTrigger, searchQuery])
+    }, [refreshTrigger, searchQuery, selectedDate, selectedDateRange])
 
     // Recherche globale
     const [globalFilter, setGlobalFilter] = useState<string>("")
@@ -186,9 +222,30 @@ export function DataTable<TData, TValue>({
       { accessorKey: "editeur", header: "Éditeur", enableHiding: true },
       { accessorKey: "support", header: "Support", enableHiding: true },
       {
+        accessorKey: "contact_type",
+        header: "Type",
+        cell: ({ row }) => {
+          const type = row.original.contact_type?.toLowerCase()
+          const colorMap: Record<string, string> = {
+            personne: "bg-blue-100 text-blue-800",
+            person: "bg-blue-100 text-blue-800",
+            organisation: "bg-purple-100 text-purple-800",
+            organization: "bg-purple-100 text-purple-800",
+          }
+          const classes = colorMap[type] || "bg-gray-100 text-gray-800"
+          return (
+            <Badge className={`capitalize ${classes} hover:bg-inherit hover:text-inherit`}>
+              {type || "N/A"}
+            </Badge>
+          )
+        },
+        enableHiding: true,
+      },
+      {
           accessorKey: "created_at",
           header: "Créé le",
           enableHiding: true,
+          filterFn: "includesString",
           cell: ({ getValue }) => {
               const value = getValue() as string
               return value ? formatDate(value) : "-"

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, Fragment } from "react"
+import { useState, useEffect, Fragment } from "react"
+import { supabase } from "@/lib/supabaseClient"
 import type { Recipient } from "@/types/recipient";
 import { useRouter } from "next/navigation";
 import { useSession } from '@supabase/auth-helpers-react';
@@ -17,13 +18,18 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { Package, ShoppingCart, Store, Truck, Check, BarChart2, MailPlus } from "lucide-react"
+import { Package, ShoppingCart, Store, Truck, Check, BarChart2, MailPlus, FileText } from "lucide-react"
 import SendTestEmailDialog from "@/app/emails/SendTestEmailDialog";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import RecipientsStep from '@/app/emails/RecipientsStep';
 import AddRecipientsDialog from '@/app/emails/AddRecipientsDialog';
+import { Button } from "@/components/ui/button"
+import TemplateDrawer from "@/components/emails/TemplateDrawer"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 export default function Page() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -64,6 +70,20 @@ export default function Page() {
   const session = useSession();
   console.log('Session utilisateur dans addcampagne:', session);
   console.log("Page campagne montée");
+
+  // Templates state
+  const [templates, setTemplates] = useState<{ id: string; name: string; body: string }[]>([]);
+  const [isTemplateDrawerOpen, setIsTemplateDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    async function fetchTemplates() {
+      const { data, error } = await supabase.from("email_templates").select("id, name, body");
+      if (!error && data) {
+        setTemplates(data);
+      }
+    }
+    fetchTemplates();
+  }, []);
 
   // Localise la logique d'envoi d'email
   async function sendNowEmail() {
@@ -141,9 +161,10 @@ export default function Page() {
             ].map((step, index, arr) => (
               <Fragment key={index}>
                 <BreadcrumbItem>
-                  <button
+                  <Button
+                    variant="ghost"
                     onClick={() => setCurrentStep(index + 1)}
-                    className={`flex items-center gap-2 ${
+                    className={`flex items-center gap-2 px-0 py-0 h-auto ${
                       index + 1 === currentStep
                         ? 'font-medium text-purple-600'
                         : 'text-gray-500 hover:text-gray-700'
@@ -151,7 +172,7 @@ export default function Page() {
                   >
                     <step.icon className="h-5 w-5" />
                     {step.label}
-                  </button>
+                  </Button>
                 </BreadcrumbItem>
                 {index !== arr.length - 1 && (
                   <li
@@ -167,33 +188,37 @@ export default function Page() {
           {Number(currentStep) === 3 ? (
             <div className="flex items-center gap-2">
               {Number(currentStep) > 1 && (
-                <button
+                <Button
+                  variant="outline"
                   onClick={() => setCurrentStep(currentStep - 1)}
-                  className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-50"
+                  className="text-sm"
                 >
                   Précédent
-                </button>
+                </Button>
               )}
-              <button
+              <Button
+                variant="outline"
                 onClick={() => setIsSendTestDialogOpen(true)}
                 disabled={!hasUnsubscribeLink || hasBodyError}
-                className={`border rounded-md px-4 py-2 text-sm ${
+                className={`text-sm ${
                   !hasUnsubscribeLink || hasBodyError
-                    ? 'bg-gray-200 cursor-not-allowed text-gray-500'
-                    : 'hover:bg-gray-50 border-gray-300'
+                    ? 'bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300'
+                    : ''
                 }`}
               >
                 Envoyer un test
-              </button>
+              </Button>
               {Number(currentStep) === 3 && !!senderName && !!senderEmail && !!subject ? (
-                <button
+                <Button
+                  variant="default"
                   onClick={sendNowEmail}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm"
+                  className="text-sm"
                 >
                   Envoyer l’email final
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
+                  variant="default"
                   onClick={() => {
                     if (Number(currentStep) === 1 && !hasBodyError && hasUnsubscribeLink) {
                       setCurrentStep(2);
@@ -205,74 +230,77 @@ export default function Page() {
                     (Number(currentStep) === 1 && (hasBodyError || !hasUnsubscribeLink)) ||
                     (Number(currentStep) === 2 && recipients.length === 0)
                   }
-                  className={`px-4 py-2 text-sm text-white rounded-md ${
+                  className={`text-sm ${
                     ((Number(currentStep) === 1 && (hasBodyError || !hasUnsubscribeLink)) ||
                       (Number(currentStep) === 2 && recipients.length === 0))
                       ? 'bg-gray-300 cursor-not-allowed'
-                      : 'bg-purple-600 hover:bg-purple-700'
+                      : ''
                   }`}
                 >
                   Suivant
-                </button>
+                </Button>
               )}
             </div>
           ) : (
             <div className="flex items-center gap-2">
-          {Number(currentStep) > 1 && (
-            <button
-              onClick={() => setCurrentStep(currentStep - 1)}
-              className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-50"
-            >
-              Précédent
-            </button>
-          )}
-              <button
+              {Number(currentStep) > 1 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                  className="text-sm"
+                >
+                  Précédent
+                </Button>
+              )}
+              <Button
+                variant="outline"
                 onClick={() => setIsSendTestDialogOpen(true)}
                 disabled={!hasUnsubscribeLink || hasBodyError}
-                className={`border rounded-md px-4 py-2 text-sm ${
+                className={`text-sm ${
                   !hasUnsubscribeLink || hasBodyError
-                    ? 'bg-gray-200 cursor-not-allowed text-gray-500'
-                    : 'hover:bg-gray-50 border-gray-300'
+                    ? 'bg-gray-200 cursor-not-allowed text-gray-500 border-gray-300'
+                    : ''
                 }`}
               >
                 Envoyer un test
-              </button>
-              <button
-            onClick={() => {
-              if (Number(currentStep) === 1 && !hasBodyError && hasUnsubscribeLink) {
-                setCurrentStep(2);
-              } else if (Number(currentStep) === 2 && recipients.length > 0) {
-                setCurrentStep(3);
-              }
-            }}
-            disabled={
-              (Number(currentStep) === 1 && (hasBodyError || !hasUnsubscribeLink)) ||
-              (Number(currentStep) === 2 && recipients.length === 0)
-            }
-            className={`px-4 py-2 text-sm text-white rounded-md ${
-              ((Number(currentStep) === 1 && (hasBodyError || !hasUnsubscribeLink)) ||
-                (Number(currentStep) === 2 && recipients.length === 0))
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-purple-600 hover:bg-purple-700'
-            }`}
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => {
+                  if (Number(currentStep) === 1 && !hasBodyError && hasUnsubscribeLink) {
+                    setCurrentStep(2);
+                  } else if (Number(currentStep) === 2 && recipients.length > 0) {
+                    setCurrentStep(3);
+                  }
+                }}
+                disabled={
+                  (Number(currentStep) === 1 && (hasBodyError || !hasUnsubscribeLink)) ||
+                  (Number(currentStep) === 2 && recipients.length === 0)
+                }
+                className={`text-sm ${
+                  ((Number(currentStep) === 1 && (hasBodyError || !hasUnsubscribeLink)) ||
+                    (Number(currentStep) === 2 && recipients.length === 0))
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : ''
+                }`}
               >
                 Suivant
-              </button>
+              </Button>
             </div>
           )}
         </div>
 
         {Number(currentStep) === 1 && (
-           <div className="p-4">
+          <div className="p-4">
             <div className="flex gap-8">
               {/* Colonne gauche */}
               <div className="flex-1 border rounded-md p-6 bg-white">
                 <div className="flex gap-4 mb-4">
                   <Dialog open={isTokenDialogOpen} onOpenChange={setIsTokenDialogOpen}>
                     <DialogTrigger asChild>
-                      <button className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-50">
+                      <Button variant="outline" className="text-sm">
                         Ajouter des tokens de personnalisation
-                      </button>
+                      </Button>
                     </DialogTrigger>
                     <DialogContent aria-describedby="description-tokens">
                       <DialogHeader>
@@ -293,28 +321,51 @@ export default function Page() {
                       </div>
                       <div className="space-y-2 max-h-40 overflow-auto">
                         {filteredTokens.map((token) => (
-                          <button
+                          <Button
                             key={token}
-                            className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm ${
-                              selectedTokens.includes(token) ? 'bg-purple-100 border-purple-600' : 'border-gray-200'
-                            }`}
+                            variant={selectedTokens.includes(token) ? "default" : "outline"}
+                            className={`flex w-full items-center justify-between px-3 py-2 text-sm ${selectedTokens.includes(token) ? 'bg-purple-100 border-purple-600' : 'border-gray-200'}`}
                             onClick={() => toggleToken(token)}
                           >
                             {token}
                             {selectedTokens.includes(token) && <Check className="h-4 w-4 text-purple-600" />}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => document.getElementById('attachment-input')?.click()}
-                    className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-50"
+                    className="text-sm"
                   >
                     Ajouter une pièce jointe
-                  </button>
+                  </Button>
                   <input type="file" id="attachment-input" className="hidden" />
+                </div>
+
+                {/* Bloc de sélection dynamique du template */}
+                <div className="mb-4">
+                  <div className="mb-2">
+                    <Button
+                      variant="default"
+                      className="w-full max-w-xs justify-start text-sm"
+                      onClick={() => setIsTemplateDrawerOpen(true)}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Choisir un template
+                    </Button>
+                  </div>
+                  <div className="mb-4">
+                    <Button
+                      variant="outline"
+                      className="w-full max-w-xs justify-start text-sm"
+                      onClick={() => router.push("/emails/editor")}
+                    >
+                      ✨ Utiliser l’éditeur visuel
+                    </Button>
+                  </div>
                 </div>
 
                 <textarea
@@ -328,8 +379,9 @@ export default function Page() {
                   {!hasUnsubscribeLink && (
                     <span className="text-sm text-red-600">Le lien de désinscription est manquant.</span>
                   )}
-                  <button
-                    className="text-sm text-gray-900 hover:underline"
+                  <Button
+                    variant="ghost"
+                    className="text-sm text-gray-900 hover:underline px-0 py-0 h-auto"
                     onClick={() => {
                       if (!hasUnsubscribeLink) {
                         setEmailBody((prev) => prev + '\n\n[unsubscribe]');
@@ -337,7 +389,7 @@ export default function Page() {
                     }}
                   >
                     Ajouter le lien de désinscription
-                  </button>
+                  </Button>
                 </div>
               </div>
               {/* Colonne droite */}
@@ -382,7 +434,7 @@ export default function Page() {
               <div className="flex-1 border rounded-md p-6 bg-white space-y-4">
                 <h2 className="text-lg font-bold mb-4">Informations de l'expéditeur</h2>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom de l'expéditeur</label>
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Nom de l'expéditeur</Label>
                   <Input
                     placeholder="Nom"
                     value={senderName}
@@ -391,7 +443,7 @@ export default function Page() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email de l'expéditeur</label>
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Email de l'expéditeur</Label>
                   <Input
                     placeholder="Email"
                     value={senderEmail}
@@ -400,7 +452,7 @@ export default function Page() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Objet</label>
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Objet</Label>
                   <div className="flex items-center justify-between mt-2">
                     <Input
                       placeholder="Objet de l'email"
@@ -409,23 +461,23 @@ export default function Page() {
                       className="w-full max-w-md"
                     />
                     <div className="flex gap-2 ml-4">
-                      <button className="bg-indigo-50 text-indigo-600 text-sm font-medium px-3 py-2 rounded-md border border-indigo-100 hover:bg-indigo-100">
+                      <Button variant="outline" className="bg-indigo-50 text-indigo-600 text-sm font-medium px-3 py-2 border-indigo-100 hover:bg-indigo-100">
                         ✨ Draft with AI
-                      </button>
-                      <button className="bg-gray-100 text-gray-600 text-sm font-medium px-3 py-2 rounded-md border hover:bg-gray-200">
+                      </Button>
+                      <Button variant="outline" className="bg-gray-100 text-gray-600 text-sm font-medium px-3 py-2 hover:bg-gray-200">
                         Personnaliser
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
                 {/* Champs supplémentaires sous Objet */}
                 <div className="mt-6 space-y-6">
                   <div className="flex items-center gap-2 mb-6">
-                    <input type="checkbox" id="internal-title" className="accent-blue-600" />
-                    <label htmlFor="internal-title" className="text-sm text-gray-700">Utiliser l’objet comme nom interne</label>
+                    <Checkbox id="internal-title" />
+                    <Label htmlFor="internal-title" className="text-sm text-gray-700">Utiliser l’objet comme nom interne</Label>
                   </div>
                   <div className="mb-6">
-                    <label className="text-sm text-gray-700 font-medium mb-1 block">Assigner à une campagne ?</label>
+                    <Label className="text-sm text-gray-700 font-medium mb-1 block">Assigner à une campagne ?</Label>
                     <div className="flex items-center gap-2">
                       {selectedCampaign ? (
                         <span
@@ -437,55 +489,42 @@ export default function Page() {
                       ) : (
                         <span className="text-sm text-gray-500">Aucune campagne sélectionnée</span>
                       )}
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => setIsCampaignDialogOpen(true)}
-                        className="text-blue-600 text-sm hover:underline"
+                        className="text-blue-600 text-sm hover:underline px-0 py-0 h-auto"
                       >
                         Changer de campagne
-                      </button>
+                      </Button>
                     </div>
                   </div>
                   <div className="mb-6">
-                    <label className="text-sm text-gray-700 font-medium block mb-1">Quand souhaitez-vous envoyer votre message ?</label>
-                    <div className="flex flex-col gap-3 mt-1">
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="radio"
-                          name="send-option"
-                          value="now"
-                          checked={sendOption === 'now'}
-                          onChange={() => setSendOption('now')}
-                        />
-                        Envoyer maintenant
-                      </label>
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="radio"
-                          name="send-option"
-                          value="later"
-                          checked={sendOption === 'later'}
-                          onChange={() => setSendOption('later')}
-                        />
-                        Programmer plus tard
+                    <Label className="text-sm text-gray-700 font-medium block mb-1">Quand souhaitez-vous envoyer votre message ?</Label>
+                    <RadioGroup
+                      value={sendOption}
+                      onValueChange={(val) => setSendOption(val as typeof sendOption)}
+                      className="flex flex-col gap-3 mt-1"
+                    >
+                      <div className="flex items-center gap-2 text-sm">
+                        <RadioGroupItem value="now" id="now" />
+                        <Label htmlFor="now">Envoyer maintenant</Label>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <RadioGroupItem value="later" id="later" />
+                        <Label htmlFor="later">Programmer plus tard</Label>
                         {sendOption === 'later' && scheduledDate && (
                           <span className="text-xs text-gray-500 ml-2">{new Date(scheduledDate).toLocaleString()}</span>
                         )}
-                      </label>
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="radio"
-                          name="send-option"
-                          value="draft"
-                          checked={sendOption === 'draft'}
-                          onChange={() => setSendOption('draft')}
-                        />
-                        Enregistrer comme brouillon
-                      </label>
-                    </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <RadioGroupItem value="draft" id="draft" />
+                        <Label htmlFor="draft">Enregistrer comme brouillon</Label>
+                      </div>
+                    </RadioGroup>
                     {/* Conditional input for scheduling */}
                     {sendOption === 'later' && (
                       <div className="mt-2">
-                        <label className="block text-sm text-gray-600 mb-1">Date et heure d’envoi</label>
+                        <Label className="block text-sm text-gray-600 mb-1">Date et heure d’envoi</Label>
                         <input
                           type="datetime-local"
                           className="border rounded-md p-2 text-sm w-full max-w-xs"
@@ -497,21 +536,23 @@ export default function Page() {
                     <p className="text-xs text-gray-500 mt-2">Votre email ne sera pas envoyé, il sera enregistré comme brouillon.</p>
                   </div>
                   <div className="flex gap-2 mt-6">
-                    <button
+                    <Button
+                      variant="outline"
                       onClick={() => setIsSendTestDialogOpen(true)}
-                      className="border border-gray-300 rounded-md px-4 py-2 text-sm hover:bg-gray-50"
+                      className="text-sm"
                     >
                       Envoyer un test
-                    </button>
+                    </Button>
                     {Number(currentStep) === 3 && !!senderName && !!senderEmail && !!subject && (
-                      <button
+                      <Button
+                        variant="default"
                         onClick={sendNowEmail}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm"
+                        className="text-sm"
                       >
                         Envoyer l’email final
-                      </button>
+                      </Button>
                     )}
-                    <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm">Enregistrer comme brouillon</button>
+                    <Button variant="default" className="text-sm">Enregistrer comme brouillon</Button>
                   </div>
                 </div>
               </div>
@@ -563,8 +604,9 @@ export default function Page() {
             />
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {['Without campaign', 'test', 'ojijojo', 'Test'].map((campaign) => (
-                <button
+                <Button
                   key={campaign}
+                  variant="ghost"
                   onClick={() => {
                     setSelectedCampaign(campaign);
                     setIsCampaignDialogOpen(false);
@@ -573,13 +615,13 @@ export default function Page() {
                 >
                   <span className="material-icons text-gray-500">folder</span>
                   {campaign}
-                </button>
+                </Button>
               ))}
             </div>
             <div className="pt-4">
-              <button className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm">
+              <Button variant="default" className="w-full text-sm">
                 Créer une nouvelle campagne
-              </button>
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -589,12 +631,13 @@ export default function Page() {
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity" />
           <div className="relative z-10 bg-white rounded-xl p-6 shadow-xl max-w-md w-full text-center animate-in fade-in-0 zoom-in-95">
             {/* Close button (X) */}
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setShowSuccessDialog(false)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-gray-900"
+              className="absolute top-4 right-4 text-muted-foreground hover:text-gray-900 px-2 py-1"
             >
               ✕
-            </button>
+            </Button>
             <div className="flex items-center justify-center mb-3">
               <span className="inline-flex items-center justify-center rounded-full bg-green-100 w-10 h-10">
                 <Check className="w-5 h-5 text-green-600" />
@@ -621,6 +664,12 @@ export default function Page() {
           </div>
         </div>
       )}
+      <TemplateDrawer
+        open={isTemplateDrawerOpen}
+        onOpenChange={setIsTemplateDrawerOpen}
+        templates={templates}
+        onSelect={(body) => setEmailBody(body)}
+      />
       </SidebarInset>
     </SidebarProvider>
   )

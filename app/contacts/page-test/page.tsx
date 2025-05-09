@@ -15,7 +15,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 
 import { DataTable } from "@/components/ui/data-table/DataTable"
-import { ColumnDef } from "@tanstack/react-table"
 import { ContactsToolbar } from "@/components/ui/contacts-toolbar"
 import { CreateContactDrawer } from "../_components/CreateContactDrawer"
 import { toast } from "sonner"
@@ -23,6 +22,7 @@ import { toast } from "sonner"
 export default function Page() {
     const [openDrawer, setOpenDrawer] = useState(false)
     const [refreshCounter, setRefreshCounter] = useState(0)
+    const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>()
 
     return (
         <SidebarProvider>
@@ -46,9 +46,21 @@ export default function Page() {
                     </div>
                 </header>
 
-                <div className="p-4">
-                    <ContactsToolbar onAddContact={() => setOpenDrawer(true)} />
-                    <DataTable refreshTrigger={refreshCounter} />
+                <div className="p-4 relative z-0">
+                    <ContactsToolbar
+                        onAddContact={() => setOpenDrawer(true)}
+                        onDateRangeChange={setDateRange}
+                        popoverProps={{
+                            align: "start",
+                            sideOffset: 8,
+                            avoidCollisions: false,
+                            className: "p-2 z-[999] bg-white border border-gray-300 shadow-xl max-w-[360px]",
+                        }}
+                    />
+                    <DataTable
+                        refreshTrigger={refreshCounter}
+                        selectedDateRange={dateRange}
+                    />
                 </div>
             </SidebarInset>
 
