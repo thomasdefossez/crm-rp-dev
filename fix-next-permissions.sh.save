@@ -1,0 +1,11 @@
+
+#!/bin/bash
+
+echo "🔧 Correction des permissions du dossier .next..."
+sudo chown -R $(whoami):staff .next
+
+echo "🧹 Suppression du cache de build..."
+rm -rf .next
+
+echo "🚀 Redémarrage du serveur en développement..."
+npm run dev
