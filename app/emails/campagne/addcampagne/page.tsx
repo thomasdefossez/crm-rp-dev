@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { Package, ShoppingCart, Store, Truck, Check, BarChart2, MailPlus, FileText } from "lucide-react"
+import { Package, ShoppingCart, Store, Truck, Check, BarChart2, MailPlus, FileText, Paperclip, BadgePercent } from "lucide-react"
 import SendTestEmailDialog from "@/app/emails/SendTestEmailDialog";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -298,16 +298,17 @@ export default function Page() {
                 <div className="flex gap-4 mb-4">
                   <Dialog open={isTokenDialogOpen} onOpenChange={setIsTokenDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="text-sm">
-                        Ajouter des tokens de personnalisation
-                      </Button>
+                     <Button variant="outline" className="text-sm flex items-center gap-2">
+                       <BadgePercent className="w-4 h-4 text-purple-600" />
+                       Champs de fusion
+                     </Button>
                     </DialogTrigger>
                     <DialogContent aria-describedby="description-tokens">
                       <DialogHeader>
-                        <DialogTitle>Ajouter des tokens de personnalisation</DialogTitle>
+                        <DialogTitle>Ajouter des champs de fusion</DialogTitle>
                       </DialogHeader>
                       <p id="description-tokens" className="sr-only">
-                        Sélectionnez les tokens à insérer dans le contenu de votre email.
+                        Sélectionnez les champs de fusion dans le contenu de votre email.
                       </p>
                       <div className="flex flex-wrap gap-2 mb-4">
                         {selectedTokens.map((token) => (
@@ -334,33 +335,24 @@ export default function Page() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById('attachment-input')?.click()}
-                    className="text-sm"
-                  >
-                    Ajouter une pièce jointe
-                  </Button>
+   <Button
+     type="button"
+     variant="outline"
+     onClick={() => document.getElementById('attachment-input')?.click()}
+     className="text-sm flex items-center gap-2"
+   >
+     <Paperclip className="w-4 h-4 text-purple-600" />
+     Pièce jointe
+   </Button>
                   <input type="file" id="attachment-input" className="hidden" />
                 </div>
 
                 {/* Bloc de sélection dynamique du template */}
                 <div className="mb-4">
-                  <div className="mb-2">
-                    <Button
-                      variant="default"
-                      className="w-full max-w-xs justify-start text-sm"
-                      onClick={() => setIsTemplateDrawerOpen(true)}
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Choisir un template
-                    </Button>
-                  </div>
                   <div className="mb-4">
                     <Button
                       variant="outline"
-                      className="w-full max-w-xs justify-start text-sm"
+                      className="w-auto max-w-xs justify-start text-sm"
                       onClick={() => router.push("/emails/editor")}
                     >
                       ✨ Utiliser l’éditeur visuel
