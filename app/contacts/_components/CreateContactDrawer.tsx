@@ -704,7 +704,7 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                                 setLinkedin("")
                                 setInstagram("")
                                 setPeriodicity("")
-                                setMediaType("")
+                                setMediaType([])
                                 setSalutation("")
                                 setRole("")
                                 setEditeur("")
