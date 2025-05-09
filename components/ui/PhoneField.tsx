@@ -1,5 +1,4 @@
 import PhoneInput from "react-phone-number-input"
-import "react-phone-number-input/style.css"
 import { Label } from "@/components/ui/label"
 
 interface PhoneFieldProps {
