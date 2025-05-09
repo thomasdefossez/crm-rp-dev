@@ -41,7 +41,6 @@ export default function Page() {
     const [subject, setSubject] = useState('');
     const [senderName, setSenderName] = useState('');
     const [senderEmail, setSenderEmail] = useState('onboarding@resend.dev');
-    const [senderSubject, setSenderSubject] = useState('');
 
     // Champs checklist
     const [hasEmail, setHasEmail] = useState(false);

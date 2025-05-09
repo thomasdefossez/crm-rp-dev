@@ -924,7 +924,7 @@ export default function ContactDetailPage() {
                 {/* CreateContactDrawer component */}
                 <CreateContactDrawer
                     open={isDrawerOpen}
-                    onOpenChangeAction={setIsDrawerOpen}
+                    onOpenChange={setIsDrawerOpen}
                 />
             </SidebarInset>
         </SidebarProvider>
