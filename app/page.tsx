@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { CheckCircle, LoaderCircle, Clock } from 'lucide-react';
+import { CheckCircle, LoaderCircle, Clock, LogIn, Mail, ShieldCheck, Github, Server } from "lucide-react";
 
 const roadmap = [
   {
@@ -40,6 +40,17 @@ const roadmap = [
     ],
   },
   {
+    phase: 'PHASE 2B',
+    titre: 'Gestion des événements',
+    objectif: 'Organiser et suivre les déjeuners presse & événements',
+    progress: 90,
+    livrables: [
+      'Création événements 🟣',
+      'Invitation de contacts 🟣',
+      'Suivi des confirmations ⏳',
+    ],
+  },
+  {
     phase: 'PHASE 3',
     titre: 'Communiqués de presse',
     objectif: 'Rédiger, envoyer, tracker un communiqué',
@@ -49,6 +60,18 @@ const roadmap = [
       'Choix des contacts à cibler ⏳',
       'Suivi des envois ⏳',
       'Email via Resend 🟣',
+    ],
+  },
+  {
+    phase: 'PHASE 3B',
+    titre: 'Campagnes & Mails',
+    objectif: 'Préparer, envoyer et suivre des campagnes d’emailing RP',
+    progress: 85,
+    livrables: [
+      'Création de campagnes 🟣',
+      'Intégration Maily ✅',
+      'Envoi des emails avec Resend ✅',
+      'Tracking ouverture / clics ⏳',
     ],
   },
   {
@@ -83,6 +106,17 @@ const roadmap = [
       'Résumé automatique d’un communiqué (GPT) ⏳',
       'Suggestion de journalistes ⏳',
       'Dashboard statistique ⏳',
+    ],
+  },
+  {
+    phase: 'PHASE 7',
+    titre: 'Gestion des prêts',
+    objectif: 'Gérer l’envoi et le retour des produits en prêt',
+    progress: 0,
+    livrables: [
+      'Table des prêts ⏳',
+      'Historique des envois/retours ⏳',
+      'Suivi des statuts ⏳',
     ],
   },
 ];
@@ -173,26 +207,47 @@ export default function Home() {
       <main className="p-8 bg-background min-h-screen text-foreground">
         <div className="mb-8 flex flex-wrap gap-4">
           <a
-              href="/login"
-              className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
+            href="/login"
+            className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
           >
-            🔐 Login Briefly
+            <LogIn className="h-4 w-4 mr-2" />
+            Login Briefly
           </a>
           <a
-              href="https://resend.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
+            href="https://resend.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
           >
-            📨 Resend Dashboard
+            <Mail className="h-4 w-4 mr-2" />
+            Resend Dashboard
           </a>
           <a
-              href="https://supabase.com/dashboard/sign-in"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
+            href="https://supabase.com/dashboard/sign-in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
           >
-            🛡️ Supabase Dashboard
+            <ShieldCheck className="h-4 w-4 mr-2" />
+            Supabase Dashboard
+          </a>
+          <a
+            href="https://github.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
+          >
+            <Github className="h-4 w-4 mr-2" />
+            GitHub
+          </a>
+          <a
+            href="https://vercel.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-medium shadow-sm hover:bg-violet-700 transition-colors"
+          >
+            <Server className="h-4 w-4 mr-2" />
+            Vercel
           </a>
         </div>
         <h1 className="text-3xl font-bold tracking-tight mb-12">
