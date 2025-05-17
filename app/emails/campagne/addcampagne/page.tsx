@@ -3,8 +3,8 @@
 import { useState, useEffect, Fragment } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import type { Recipient } from "@/types/recipient";
+import type { Template } from "@/types/template";
 import { useRouter } from "next/navigation";
-import { useSession } from '@supabase/auth-helpers-react';
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { Package, ShoppingCart, Store, Truck, Check, BarChart2, MailPlus, FileText } from "lucide-react"
+import { Package, ShoppingCart, Store, Truck, Check, BarChart2, MailPlus, FileText, Paperclip, Sparkles } from "lucide-react"
 import SendTestEmailDialog from "@/app/emails/SendTestEmailDialog";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +26,17 @@ import { Input } from "@/components/ui/input";
 import RecipientsStep from '@/app/emails/RecipientsStep';
 import AddRecipientsDialog from '@/app/emails/AddRecipientsDialog';
 import { Button } from "@/components/ui/button"
-import TemplateDrawer from "@/components/emails/TemplateDrawer"
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -67,23 +77,32 @@ export default function Page() {
   const [sendOption, setSendOption] = useState<'now' | 'later' | 'draft'>('draft');
   const [scheduledDate, setScheduledDate] = useState('');
   const router = useRouter();
-  const session = useSession();
-  console.log('Session utilisateur dans addcampagne:', session);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Erreur lors de la récupération de l’utilisateur', error.message);
+      } else {
+        console.log('Utilisateur authentifié depuis Supabase Auth Server :', user);
+      }
+    };
+    fetchUser();
+  }, []);
   console.log("Page campagne montée");
 
   // Templates state
-  const [templates, setTemplates] = useState<{ id: string; name: string; body: string }[]>([]);
-  const [isTemplateDrawerOpen, setIsTemplateDrawerOpen] = useState(false);
-
+  const [templates, setTemplates] = useState<Template[]>([]);
   useEffect(() => {
-    async function fetchTemplates() {
-      const { data, error } = await supabase.from("email_templates").select("id, name, body");
-      if (!error && data) {
-        setTemplates(data);
-      }
-    }
+    const fetchTemplates = async () => {
+      const { data, error } = await supabase.from("email_templates").select("*");
+      if (!error && data) setTemplates(data);
+    };
     fetchTemplates();
   }, []);
+
+  // State to track which template is to be deleted in AlertDialog
+  const [templateToDelete, setTemplateToDelete] = useState<Template | null>(null);
+
 
   // Localise la logique d'envoi d'email
   async function sendNowEmail() {
@@ -295,11 +314,12 @@ export default function Page() {
             <div className="flex gap-8">
               {/* Colonne gauche */}
               <div className="flex-1 border rounded-md p-6 bg-white">
-                <div className="flex gap-4 mb-4">
+                <div className="flex gap-3 flex-wrap mb-4 items-center">
                   <Dialog open={isTokenDialogOpen} onOpenChange={setIsTokenDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="text-sm">
-                        Ajouter des tokens de personnalisation
+                      <Button variant="outline" className="text-sm w-36">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Champs fusion
                       </Button>
                     </DialogTrigger>
                     <DialogContent aria-describedby="description-tokens">
@@ -338,34 +358,20 @@ export default function Page() {
                     type="button"
                     variant="outline"
                     onClick={() => document.getElementById('attachment-input')?.click()}
-                    className="text-sm"
+                    className="text-sm w-36"
                   >
-                    Ajouter une pièce jointe
+                    <Paperclip className="h-4 w-4 mr-2" />
+                    Pièce jointe
                   </Button>
                   <input type="file" id="attachment-input" className="hidden" />
-                </div>
-
-                {/* Bloc de sélection dynamique du template */}
-                <div className="mb-4">
-                  <div className="mb-2">
-                    <Button
-                      variant="default"
-                      className="w-full max-w-xs justify-start text-sm"
-                      onClick={() => setIsTemplateDrawerOpen(true)}
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Choisir un template
-                    </Button>
-                  </div>
-                  <div className="mb-4">
-                    <Button
-                      variant="outline"
-                      className="w-full max-w-xs justify-start text-sm"
-                      onClick={() => router.push("/emails/editor")}
-                    >
-                      ✨ Utiliser l’éditeur visuel
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    className="w-min max-w-xs justify-start text-sm"
+                    onClick={() => router.push("/emails/editor")}
+                  >
+                    <Sparkles className="h-4 w-4 mr-2 text-yellow-500" />
+                    Editeur visuel
+                  </Button>
                 </div>
 
                 <textarea
@@ -377,7 +383,67 @@ export default function Page() {
 
                 <div className="flex justify-between items-center mt-2">
                   {!hasUnsubscribeLink && (
-                    <span className="text-sm text-red-600">Le lien de désinscription est manquant.</span>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" className="text-sm text-gray-900 hover:underline px-0 py-0 h-auto">
+                          Afficher les templates
+                        </Button>
+                      </DialogTrigger>
+                      {/* Vérification/remplacement du wrapper flex items-start */}
+                      <div className="flex items-center">
+                        <DialogContent
+                          className="max-w-5xl w-full max-h-[80vh] overflow-y-auto rounded-lg"
+                          aria-describedby="templates-description"
+                        >
+                          <DialogHeader>
+                            <DialogTitle>Templates disponibles</DialogTitle>
+                          </DialogHeader>
+                          <p id="templates-description" className="sr-only">
+                            Choisissez un template d'email à insérer ou à supprimer.
+                          </p>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                            {templates.map((template) => (
+                              <div key={template.id} className="border rounded-lg overflow-hidden shadow-sm bg-white">
+                                <div className="aspect-video bg-gray-50 flex items-center justify-center overflow-hidden">
+                                  <div
+                                    className="w-full h-full text-sm p-2 overflow-hidden"
+                                    dangerouslySetInnerHTML={{ __html: template.body }}
+                                  />
+                                </div>
+                                <div className="flex flex-col gap-2 px-3 py-2 text-sm border-t">
+                                  <div className="truncate font-medium text-gray-900">
+                                    {template.name || "Template sans nom"}
+                                  </div>
+                                  <div className="flex justify-between gap-2">
+                                    <Button
+                                      variant="outline"
+                                      className="text-xs px-2 py-1"
+                                      onClick={() => {
+                                        setEmailBody(template.body);
+                                        setTemplateToDelete(null);
+                                        document.body.click(); // This simulates closing the dialog
+                                      }}
+                                    >
+                                      Utiliser
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      className="text-red-500 px-2 py-1 text-xs"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setTemplateToDelete(template);
+                                      }}
+                                    >
+                                      Supprimer
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </DialogContent>
+                      </div>
+                    </Dialog>
                   )}
                   <Button
                     variant="ghost"
@@ -591,11 +657,49 @@ export default function Page() {
           onSenderNameChange={setSenderName}
           onSenderEmailChange={setSenderEmail}
         />
+      {/* Dialog for template deletion (ShadCN UI) */}
+      <Dialog open={!!templateToDelete} onOpenChange={(open) => {
+        if (!open) setTemplateToDelete(null);
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-gray-600">
+            Ce template sera définitivement supprimé.
+          </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="ghost" onClick={() => setTemplateToDelete(null)}>
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                console.log("Tentative de suppression du template :", templateToDelete);
+                const { error } = await supabase.from("email_templates").delete().eq("id", templateToDelete.id);
+                if (error) {
+                  console.error("Erreur Supabase :", error);
+                  toast.error("Erreur lors de la suppression du template.");
+                } else {
+                  setTemplates(prev => prev.filter(t => t.id !== templateToDelete.id));
+                  toast.success("Template supprimé avec succès !");
+                  setTemplateToDelete(null);
+                }
+              }}
+            >
+              Supprimer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
         <Dialog open={isCampaignDialogOpen} onOpenChange={setIsCampaignDialogOpen}>
-          <DialogContent className="max-w-sm">
+          <DialogContent className="max-w-sm" aria-describedby="description-campaign">
             <DialogHeader>
               <DialogTitle>Choisir une campagne</DialogTitle>
             </DialogHeader>
+            <p id="description-campaign" className="sr-only">
+              Recherchez ou sélectionnez une campagne existante.
+            </p>
             <Input
               type="text"
               placeholder="Rechercher une campagne..."
@@ -664,12 +768,6 @@ export default function Page() {
           </div>
         </div>
       )}
-      <TemplateDrawer
-        open={isTemplateDrawerOpen}
-        onOpenChange={setIsTemplateDrawerOpen}
-        templates={templates}
-        onSelect={(body) => setEmailBody(body)}
-      />
       </SidebarInset>
     </SidebarProvider>
   )

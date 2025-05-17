@@ -3,14 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { toast } from "sonner";
 
 import {
   BadgeCheck,
-  Bell,
   ChevronsUpDown,
   CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react"
 
 import {
@@ -33,7 +32,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { toast } from "react-hot-toast";
 
 export function NavUser({
   user,
@@ -63,7 +61,7 @@ export function NavUser({
 
   // Fonction pour déconnecter l'utilisateur de tous les appareils
   const handleLogoutAllDevices = async () => {
-    const { error } = await supabase.auth.api.signOut(); // Supprime tous les tokens
+    const { error } = await supabase.auth.signOut(); // Déconnexion via méthode moderne
     if (error) {
       console.error("Erreur lors de la déconnexion de tous les appareils:", error.message);
       toast.error("Erreur de déconnexion.");
@@ -113,35 +111,14 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => router.push("/account")}>
                 <BadgeCheck className="mr-2 h-4 w-4" />
                 Mon compte
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
                 <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
+     
             <DropdownMenuItem onClick={handleLogoutAllDevices}>
               <LogOut />
               Log out from all devices

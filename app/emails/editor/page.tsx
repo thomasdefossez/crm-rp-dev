@@ -1,5 +1,5 @@
-"use client"
-
+ "use client"
+import DOMPurify from 'dompurify';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -108,8 +108,13 @@ export default function EmailEditorPage() {
   const exportHtml = async () => {
     const editor = (window as any).editorRef;
     if (editor && typeof editor.getHTML === "function") {
-      const html = editor.getHTML();
+      const rawHtml = editor.getHTML();
+      const html = DOMPurify.sanitize(rawHtml);
       const design = editor.getJSON();
+
+      if (rawHtml !== html) {
+        toast.warning("Le contenu HTML a été nettoyé pour des raisons de sécurité.");
+      }
 
       console.log("✅ HTML EXPORTÉ", html);
       console.log("🧩 DESIGN JSON", design);
@@ -124,7 +129,7 @@ export default function EmailEditorPage() {
       ]);
 
       if (error) {
-        console.error("Erreur lors de l'insertion Supabase :", error.message);
+        console.error("Erreur lors de l'insertion Supabase :", error); // et pas error.message
       } else {
         toast.success(
             <span>
@@ -286,13 +291,25 @@ export default function EmailEditorPage() {
                         const handleSendTest = async () => {
                           const editor = (window as any).editorRef;
                           if (editor && typeof editor.getHTML === "function") {
-                            const html = editor.getHTML();
+                            const rawHtml = editor.getHTML();
+                            const html = DOMPurify.sanitize(rawHtml);
+
+                            if (rawHtml !== html) {
+                              toast.warning("Le contenu HTML a été nettoyé pour des raisons de sécurité.");
+                            }
+
                             console.log("🧪 Contenu HTML pour test :", html);
+
                             const response = await fetch("/api/send-test-email", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ to: senderEmail, subject: "Test Email", html }),
+                              body: JSON.stringify({
+                                to: senderEmail,
+                                subject: "Test Email",
+                                html,
+                              }),
                             });
+
                             const result = await response.json();
                             if (result.success) {
                               toast.success("✉️ Email test envoyé avec succès ! 🎉");

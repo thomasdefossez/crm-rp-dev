@@ -78,6 +78,29 @@ function getData(pathname: string) {
         ],
       },
       {
+        title: "Newsrooms",
+        url: "#",
+        icon: PieChart,
+        items: [
+          {
+            title: "Revue de presse",
+            url: "/newsrooms/revue-de-presse",
+          },
+          {
+            title: "Press kits",
+            url: "/newsrooms/press-kits",
+          },
+          {
+            title: "Flux sociaux",
+            url: "/newsrooms/flux-sociaux",
+          },
+          {
+            title: "Porte-paroles",
+            url: "/newsrooms/porte-paroles",
+          },
+        ],
+      },
+      {
         title: "Shopping ",
         url: "/shopping",
         icon: BookOpen,
@@ -156,16 +179,6 @@ function getData(pathname: string) {
       },
     ],
     projects: [
-      {
-        name: "Press release",
-        url: "#",
-        icon: Frame,
-      },
-      {
-        name: "Newsromm",
-        url: "#",
-        icon: PieChart,
-      },
       {
         name: "Travel",
         url: "#",

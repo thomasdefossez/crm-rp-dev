@@ -3,24 +3,16 @@
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react"
 import { XMarkIcon } from "@heroicons/react/24/outline"
 
-interface Template {
-    id: string
-    name: string
-    body: string
-}
-
 interface TemplateDrawerProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    templates: Template[]
-    onSelect: (body: string) => void;
+    templates: { id: string; name: string; body: string }[];
 }
 
 export default function TemplateDrawer({
     open,
     onOpenChange,
     templates,
-    onSelect,
 }: TemplateDrawerProps) {
     return (
         <Dialog open={open} onClose={onOpenChange} className="relative z-50">
@@ -42,27 +34,16 @@ export default function TemplateDrawer({
                                     </button>
                                 </div>
                                 <div className="relative mt-6 flex-1 px-4 sm:px-6">
-                                    <div className="grid grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {templates.map((template) => (
-                                            <button
-                                                key={template.id}
-                                                onClick={() => {
-                                                    onSelect(template.body)
-                                                    onOpenChange(false)
-                                                }}
-                                                className="block rounded-lg border hover:border-purple-500 transition bg-white shadow-sm overflow-hidden text-left w-full"
-                                            >
-                                                <div className="aspect-[3/2] w-full bg-white flex items-center justify-center overflow-hidden">
-                                                    <iframe
-                                                        srcDoc={template.body}
-                                                        className="w-full h-full border-none"
-                                                        sandbox=""
-                                                    />
+                                            <div key={template.id} className="rounded border overflow-hidden shadow-sm bg-white flex flex-col">
+                                                <div className="h-32 w-full bg-white flex items-center justify-center overflow-hidden">
+                                                    <iframe srcDoc={template.body} className="w-full h-full" sandbox="" />
                                                 </div>
-                                                <div className="p-3 border-t">
-                                                    <div className="text-sm font-medium text-gray-900">{template.name}</div>
+                                                <div className="p-3 border-t flex flex-col justify-between gap-2 h-24">
+                                                    <div className="text-sm font-medium text-gray-900 truncate">{template.name || "Template sans nom"}</div>
                                                 </div>
-                                            </button>
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
