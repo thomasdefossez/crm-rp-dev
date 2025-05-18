@@ -23,7 +23,7 @@
       "@lib/*": ["./lib/*"],
       "@app/*": ["./app/*"],
       "@components/*": ["./components/*"],
-      "@maily/*": ["./maily.to/*"]
+      "@maily.to/*": ["maily.to/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
