@@ -175,7 +175,10 @@ export default function EmailComposerPage() {
                     </div>
                 </div>
             ) : (
-                <RecipientsStep />
+                <RecipientsStep
+                    recipients={[]} // placeholder, replace with actual state if needed
+                    onRecipientsChange={() => {}} // placeholder function
+                />
             )}
 
             {/* Popin Tokens */}
@@ -221,7 +224,13 @@ export default function EmailComposerPage() {
             <SendTestEmailDialog
                 open={isSendTestDialogOpen}
                 onOpenChange={setIsSendTestDialogOpen}
-                emailBody={emailBody} // 👈 Passe le contenu ici
+                emailBody={emailBody}
+                subject=""
+                senderName=""
+                senderEmail=""
+                onSenderNameChange={() => {}}
+                onSenderEmailChange={() => {}}
+                recipients={[]}
             />
         </div>
     );

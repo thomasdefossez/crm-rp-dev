@@ -1,21 +1,24 @@
 import PhoneInput from "react-phone-number-input"
 import "react-phone-number-input/style.css"
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 interface PhoneFieldProps {
     label?: string
-    value: string
-    onChange: (value: string) => void
+    value: string | undefined
+    onChange: (value: string | undefined) => void
     required?: boolean
+    className?: string
 }
 
 export const PhoneField = ({
-                               label = "Téléphone",
-                               value,
-                               onChange,
-                               required = false,
-                           }: PhoneFieldProps) => (
-    <div className="col-span-2">
+    label = "Téléphone",
+    value,
+    onChange,
+    required = false,
+    className,
+}: PhoneFieldProps) => (
+    <div className={cn("col-span-2", className)}>
         <Label className="mb-1 block">{label}</Label>
         <PhoneInput
             value={value}

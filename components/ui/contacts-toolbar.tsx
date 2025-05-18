@@ -36,7 +36,7 @@ export function ContactsToolbar({
   onDateRangeChange,
   popoverProps,
 }: ContactsToolbarProps) {
-    const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>()
+    const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>({ from: new Date(), to: new Date() });
     const dialogTriggerRef = useRef<HTMLButtonElement>(null)
     const router = useRouter()
 
@@ -49,8 +49,10 @@ export function ContactsToolbar({
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2">
                 <DatePickerWithRange date={dateRange} setDate={(range) => {
-                  setDateRange(range)
-                  onDateRangeChange(range)
+                  if (range?.from) {
+                    setDateRange(range as { from: Date; to?: Date });
+                    onDateRangeChange(range as { from: Date; to?: Date });
+                  }
                 }} />
             </div>
 

@@ -125,6 +125,12 @@ export default function AccountPage() {
         }
       }
 
+      // Ajout du contrôle de nullité pour user avant la requête utilisateur
+      if (!user) {
+        toast.error("Utilisateur non authentifié.");
+        return;
+      }
+
       const { data, error: userError } = await supabase
         .from("users")
         .select("*")
@@ -324,6 +330,11 @@ export default function AccountPage() {
                         data: { user },
                       } = await supabase.auth.getUser();
 
+                      if (!user) {
+                        toast.error("Utilisateur non authentifié.");
+                        return;
+                      }
+
                       const { error } = await supabase
                         .from("users")
                         .update({
@@ -506,6 +517,11 @@ export default function AccountPage() {
                       const {
                         data: { user },
                       } = await supabase.auth.getUser();
+
+                      if (!user) {
+                        toast.error("Utilisateur non authentifié.");
+                        return;
+                      }
 
                       const { error } = await supabase.from("users").update({
                         notifications_disabled: notificationsDisabled,

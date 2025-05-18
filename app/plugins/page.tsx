@@ -52,18 +52,21 @@ export default function PluginsPage() {
                           title="Bot"
                           description="Ajoutez un bot à votre service client"
                           icon="bot"
+                          badge="Essentials"
                           onConnect={() => console.log("Connecter Bot")}
                         />
                         <PluginCard
                           title="Messenger"
                           description="Connectez votre page Facebook"
                           icon="messenger"
+                          badge="Mini"
                           onConnect={() => console.log("Connecter Messenger")}
                         />
                         <PluginCard
                           title="Zapier"
                           description="Automatisez vos flux de travail"
                           icon="zapier"
+                          badge="Plus"
                           onConnect={() => console.log("Connecter Zapier")}
                         />
                     </div>

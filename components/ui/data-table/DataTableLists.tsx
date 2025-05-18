@@ -173,7 +173,7 @@ export function DataTableLists() {
                               onCheckedChange={() => header.column.toggleVisibility()}
                               className="pointer-events-none"
                           />
-                          <span>{flexRender(header.column.columnDef.header, header.column.getHeaderContext())}</span>
+                          <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
                         </CommandItem>
                     ))}
                   </CommandGroup>

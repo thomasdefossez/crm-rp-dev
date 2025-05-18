@@ -5,7 +5,6 @@ import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -64,7 +63,7 @@ export function Cegraph() {
                 <div className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
                     <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
                         <CardTitle>Performance visiteurs</CardTitle>
-                        <CardDescription>Visites des 30 derniers jours</CardDescription>
+                        <p className="text-sm text-muted-foreground">Visites des 30 derniers jours</p>
                     </div>
                     <div className="flex">
                         {(["desktop", "mobile"] as const).map((key) => (

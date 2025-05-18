@@ -1,4 +1,5 @@
 import { createElement } from 'react';
+import type { JSX } from 'react';
 
 export type MetaDescriptor =
   | {

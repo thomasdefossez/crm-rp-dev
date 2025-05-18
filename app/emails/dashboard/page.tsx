@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { usePathname } from "next/navigation"
 import Link from 'next/link';
@@ -143,8 +143,11 @@ export default function ContactsPage() {
               .gte('created_at', startOfPrevMonth)
               .lte('created_at', endOfPrevMonth);
 
-            setCurrentMonthEmails(countCurrentMonth || 0);
-            const variation = countPreviousMonth ? ((countCurrentMonth - countPreviousMonth) / countPreviousMonth) * 100 : 0;
+            const currentCount = typeof countCurrentMonth === 'number' ? countCurrentMonth : 0;
+            const previousCount = typeof countPreviousMonth === 'number' ? countPreviousMonth : 0;
+
+            setCurrentMonthEmails(currentCount);
+            const variation = previousCount > 0 ? ((currentCount - previousCount) / previousCount) * 100 : 0;
             setMonthVariation(Math.round(variation));
         };
         fetchEmails();
@@ -348,6 +351,28 @@ export default function ContactsPage() {
     );
 }
 
-async function sendEmail({ senderName, senderEmail, subject, emailBody }: { senderName: string; senderEmail: string; subject: string; emailBody: string }) {
-    toast.success('Email envoyé avec succès !');
+async function sendEmail({
+    senderName,
+    senderEmail,
+    subject,
+    emailBody,
+    recipients,
+}: {
+    senderName: string;
+    senderEmail: string;
+    subject: string;
+    emailBody: string;
+    recipients: { email: string }[];
+}) {
+    try {
+        const toEmails = recipients.map((r) => r.email);
+        console.log('Envoi email à :', toEmails);
+        console.log('Sujet :', subject);
+        console.log('Expéditeur :', senderName, senderEmail);
+        console.log('Contenu :', emailBody);
+        toast.success('Email envoyé avec succès !');
+    } catch (error) {
+        console.error('Erreur lors de l\'envoi de l\'email :', error);
+        toast.error('Erreur lors de l\'envoi de l\'email.');
+    }
 }

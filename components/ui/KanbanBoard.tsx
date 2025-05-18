@@ -53,14 +53,14 @@ function SortableItem({ id }: { id: string }) {
     }
 
     return (
-        <Card
+        <div
             ref={setNodeRef}
             style={style}
             {...attributes}
             {...listeners}
-            className="p-2 bg-white shadow cursor-move"
+            className="p-2 bg-white shadow cursor-move rounded border"
         >
             {id}
-        </Card>
+        </div>
     )
 }

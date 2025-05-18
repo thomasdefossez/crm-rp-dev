@@ -1,3 +1,5 @@
+import type * as React from 'react';
+import type { ReactElement } from 'react';
 import { Fragment, type CSSProperties } from 'react';
 import {
   Text,
@@ -22,7 +24,7 @@ import type { JSONContent } from '@tiptap/core';
 import { deepMerge } from '@antfu/utils';
 import { generateKey } from './utils';
 import type { MetaDescriptors } from './meta.tsx';
-import { meta } from './meta.tsx';
+import { meta } from './meta';
 import { parse } from 'node-html-parser';
 import juice from 'juice';
 
@@ -624,7 +626,7 @@ export class Maily {
   private getMappedContent(
     node: JSONContent,
     options?: NodeOptions
-  ): JSX.Element[] {
+  ): ReactElement[] {
     const allNodes = node.content || [];
     return allNodes
       .map((childNode, index) => {
@@ -639,26 +641,26 @@ export class Maily {
 
         return <Fragment key={generateKey()}>{component}</Fragment>;
       })
-      .filter((n) => n !== null) as JSX.Element[];
+      .filter((n) => n !== null) as ReactElement[];
   }
 
   // `renderNode` will call the method of the corresponding node type
   private renderNode(
     node: JSONContent,
     options: NodeOptions = {}
-  ): JSX.Element | null {
+  ): ReactElement | null {
     const type = node.type || '';
 
     if (type in this) {
       // @ts-expect-error - `this` is not assignable to type 'never'
-      return this[type]?.(node, options) as JSX.Element;
+      return this[type]?.(node, options) as ReactElement;
     }
 
     throw new Error(`Node type "${type}" is not supported.`);
   }
 
   // `renderMark` will call the method of the corresponding mark type
-  private renderMark(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private renderMark(node: JSONContent, options?: NodeOptions): ReactElement {
     // It will wrap the text with the corresponding mark type
     const text = node?.text || <>&nbsp;</>;
     let marks = node?.marks || [];
@@ -673,7 +675,7 @@ export class Maily {
         const type = mark.type;
         if (type in this) {
           // @ts-expect-error - `this` is not assignable to type 'never'
-          return this[type]?.(mark, acc) as JSX.Element;
+          return this[type]?.(mark, acc) as ReactElement;
         }
 
         throw new Error(`Mark type "${type}" is not supported.`);
@@ -682,7 +684,7 @@ export class Maily {
     );
   }
 
-  private paragraph(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private paragraph(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     const alignment = attrs?.textAlign || 'left';
     const { isParentListItem, shouldRemoveBottomMargin } =
@@ -718,7 +720,7 @@ export class Maily {
     );
   }
 
-  private text(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private text(node: JSONContent, options?: NodeOptions): ReactElement {
     if (node.marks) {
       return this.renderMark(node, options);
     }
@@ -740,23 +742,23 @@ export class Maily {
     return text ? <>{text}</> : <>&nbsp;</>;
   }
 
-  private bold(_: MarkType, text: JSX.Element): JSX.Element {
+  private bold(_: MarkType, text: ReactElement): ReactElement {
     return <strong>{text}</strong>;
   }
 
-  private italic(_: MarkType, text: JSX.Element): JSX.Element {
+  private italic(_: MarkType, text: ReactElement): ReactElement {
     return <em>{text}</em>;
   }
 
-  private underline(_: MarkType, text: JSX.Element): JSX.Element {
+  private underline(_: MarkType, text: ReactElement): ReactElement {
     return <u>{text}</u>;
   }
 
-  private strike(_: MarkType, text: JSX.Element): JSX.Element {
+  private strike(_: MarkType, text: ReactElement): ReactElement {
     return <s style={{ textDecoration: 'line-through' }}>{text}</s>;
   }
 
-  private textStyle(mark: MarkType, text: JSX.Element): JSX.Element {
+  private textStyle(mark: MarkType, text: ReactElement): ReactElement {
     const { attrs } = mark;
     const { color = this.config.theme?.colors?.paragraph } = attrs || {};
 
@@ -773,9 +775,9 @@ export class Maily {
 
   private link(
     mark: MarkType,
-    text: JSX.Element,
+    text: ReactElement,
     options?: NodeOptions
-  ): JSX.Element {
+  ): ReactElement {
     const { attrs } = mark;
 
     let href = attrs?.href || '#';
@@ -823,7 +825,7 @@ export class Maily {
     );
   }
 
-  private heading(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private heading(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
 
     const level = `h${Number(attrs?.level) || 1}`;
@@ -863,7 +865,7 @@ export class Maily {
     );
   }
 
-  private variable(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private variable(node: JSONContent, options?: NodeOptions): ReactElement {
     const { payloadValue } = options || {};
     const { id: variable, fallback } = node.attrs || {};
 
@@ -918,7 +920,7 @@ export class Maily {
     return formattedVariable;
   }
 
-  private horizontalRule(_: JSONContent, __?: NodeOptions): JSX.Element {
+  private horizontalRule(_: JSONContent, __?: NodeOptions): ReactElement {
     return (
       <Hr
         style={{
@@ -929,7 +931,7 @@ export class Maily {
     );
   }
 
-  private orderedList(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private orderedList(node: JSONContent, options?: NodeOptions): ReactElement {
     const { shouldRemoveBottomMargin } = this.getMarginOverrideConditions(
       node,
       options
@@ -954,7 +956,7 @@ export class Maily {
     );
   }
 
-  private bulletList(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private bulletList(node: JSONContent, options?: NodeOptions): ReactElement {
     const { parent, next } = options || {};
     const { shouldRemoveBottomMargin } = this.getMarginOverrideConditions(
       node,
@@ -987,7 +989,7 @@ export class Maily {
     );
   }
 
-  private listItem(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private listItem(node: JSONContent, options?: NodeOptions): ReactElement {
     return (
       <li
         style={{
@@ -1001,7 +1003,7 @@ export class Maily {
     );
   }
 
-  private button(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private button(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     let {
       text: _text,
@@ -1076,7 +1078,7 @@ export class Maily {
     );
   }
 
-  private spacer(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private spacer(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     const { height } = attrs || {};
 
@@ -1094,11 +1096,11 @@ export class Maily {
     );
   }
 
-  private hardBreak(_: JSONContent, __?: NodeOptions): JSX.Element {
+  private hardBreak(_: JSONContent, __?: NodeOptions): ReactElement {
     return <br />;
   }
 
-  private logo(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private logo(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     let {
       src,
@@ -1144,7 +1146,7 @@ export class Maily {
     );
   }
 
-  private image(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private image(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     let {
       src,
@@ -1229,7 +1231,7 @@ export class Maily {
     );
   }
 
-  private footer(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private footer(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     const { textAlign = 'left' } = attrs || {};
 
@@ -1258,7 +1260,7 @@ export class Maily {
     );
   }
 
-  private blockquote(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private blockquote(node: JSONContent, options?: NodeOptions): ReactElement {
     const { isPrevSpacer, shouldRemoveBottomMargin } =
       this.getMarginOverrideConditions(node, options);
 
@@ -1282,7 +1284,7 @@ export class Maily {
       </blockquote>
     );
   }
-  private code(_: MarkType, text: JSX.Element): JSX.Element {
+  private code(_: MarkType, text: ReactElement): ReactElement {
     return (
       <code
         style={{
@@ -1299,7 +1301,7 @@ export class Maily {
       </code>
     );
   }
-  private linkCard(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private linkCard(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     const { shouldRemoveBottomMargin } = this.getMarginOverrideConditions(
       node,
@@ -1454,7 +1456,7 @@ export class Maily {
     );
   }
 
-  private section(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private section(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     const {
       borderRadius = 0,
@@ -1512,7 +1514,7 @@ export class Maily {
     );
   }
 
-  private columns(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private columns(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
 
     const shouldShow = this.shouldShow(node, options);
@@ -1624,7 +1626,7 @@ export class Maily {
     ];
   }
 
-  private column(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private column(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     const {
       width,
@@ -1660,7 +1662,7 @@ export class Maily {
     );
   }
 
-  private repeat(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private repeat(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     const { each = '' } = attrs || {};
 
@@ -1702,7 +1704,7 @@ export class Maily {
    * @param options
    * @returns JSX.Element
    */
-  private for(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private for(node: JSONContent, options?: NodeOptions): ReactElement {
     return this.repeat(node, options);
   }
 
@@ -1717,7 +1719,7 @@ export class Maily {
     return !!(this.payloadValues.get(showIfKey) ?? payloadValue[showIfKey]);
   }
 
-  htmlCodeBlock(node: JSONContent, options?: NodeOptions): JSX.Element {
+  htmlCodeBlock(node: JSONContent, options?: NodeOptions): ReactElement {
     const show = this.shouldShow(node, options);
     if (!show) {
       return <></>;
@@ -1773,7 +1775,7 @@ export class Maily {
     );
   }
 
-  private inlineImage(node: JSONContent, options?: NodeOptions): JSX.Element {
+  private inlineImage(node: JSONContent, options?: NodeOptions): ReactElement {
     const { attrs } = node;
     let {
       src,
@@ -1830,10 +1832,8 @@ export class Maily {
   }
 }
 
-import { EmailEditorSandbox } from "@/maily.to/apps/web/app/components/email-editor-sandbox";
-
 export function EditorComponent() {
-  return <EmailEditorSandbox />;
+  return <div>Éditeur non disponible</div>;
 }
 
 export { Maily as Editor };

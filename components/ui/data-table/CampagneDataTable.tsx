@@ -54,6 +54,7 @@ interface DataTableProps<TData, TValue> {
     onTotalContactsChange?: (total: number) => void
     searchQuery?: string
     onSelectionChange?: (selectedIds: string[]) => void
+    tableName?: string
 }
 
 export function DataTable<TData, TValue>({

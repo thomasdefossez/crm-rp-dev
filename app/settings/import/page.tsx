@@ -1,8 +1,6 @@
 "use client";
 import {
-  Sidebar,
-  SidebarSection,
-  SidebarItem
+  Sidebar
 } from "@/components/ui/sidebar";
 import {
   User,

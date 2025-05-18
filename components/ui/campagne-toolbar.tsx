@@ -42,7 +42,6 @@ export function CampagneToolbar({ onCampaignCreated }: { onCampaignCreated?: (id
                 <DialogContent className="max-w-md">
                     <CreateCampaignDialog
                         onClose={() => setOpenCreate(false)}
-                        onCampaignCreated={onCampaignCreated}
                     />
                 </DialogContent>
             </Dialog>

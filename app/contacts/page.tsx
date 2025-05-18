@@ -54,6 +54,8 @@ export default function ContactsPage() {
 
     const router = useRouter();
 
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
     useEffect(() => {
         const fetchCount = async () => {
             const { count, error } = await supabase
@@ -232,6 +234,8 @@ export default function ContactsPage() {
                         </Dialog>
 
                         <CreateContactDrawer
+                            open={isDrawerOpen}
+                            onOpenChange={setIsDrawerOpen}
                             triggerButton={
                                 <Button size="sm" className="bg-purple-600 text-white hover:bg-purple-700">
                                     Ajouter un contact
@@ -287,7 +291,7 @@ export default function ContactsPage() {
                                     refreshTrigger={refreshCounter}
                                     onTotalContactsChange={(total) => setTotalContacts(total)}
                                     searchQuery={searchQuery}
-                                    onSelectionChange={setSelectedContacts}
+                                    onSelectionChange={(selected: string[]) => setSelectedContacts(selected.map((id) => parseInt(id, 10)))}
                                 />
                                 <div className="flex justify-center items-center mt-6 space-x-4">
                                     <Button variant="outline" size="sm" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>Précédent</Button>
@@ -305,7 +309,7 @@ export default function ContactsPage() {
                               refreshTrigger={refreshCounter}
                               onTotalContactsChange={(total) => setTotalContacts(total)}
                               searchQuery={searchQuery}
-                              onSelectionChange={setSelectedContacts}
+                              onSelectionChange={(selected: string[]) => setSelectedContacts(selected.map((id) => parseInt(id, 10)))}
                               filterUpdatedSince={7}
                             />
                           </>

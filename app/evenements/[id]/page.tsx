@@ -309,7 +309,7 @@ export default function EventDetailPage() {
                   <span><strong>Client :</strong> {clientLabel}</span>
                   <Dialog open={clientDialogOpen} onOpenChange={setClientDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="xs" className="text-xs ml-2">Associer un client</Button>
+                      <Button variant="outline" size="sm" className="text-xs ml-2">Associer un client</Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>

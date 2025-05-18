@@ -1,22 +1,18 @@
-// components/ui/card.tsx
-import { ReactNode } from 'react';
+import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
-export function Card({ children }: { children: ReactNode }) {
-    return <div className="bg-white shadow-md rounded-lg p-6">{children}</div>;
+export function Card({ children, className }: { children: ReactNode; className?: string }) {
+    return <div className={cn("rounded-lg border bg-white text-card-foreground shadow-sm", className)}>{children}</div>;
 }
 
-export function CardHeader({ children }: { children: ReactNode }) {
-    return <div className="text-xl font-semibold">{children}</div>;
+export function CardHeader({ children, className }: { children: ReactNode; className?: string }) {
+    return <div className={cn("flex flex-col space-y-1.5 p-6", className)}>{children}</div>;
 }
 
-export function CardContent({ children }: { children: ReactNode }) {
-    return <div className="text-sm">{children}</div>;
+export function CardTitle({ children, className }: { children: ReactNode; className?: string }) {
+    return <h3 className={cn("text-lg font-semibold leading-none tracking-tight", className)}>{children}</h3>;
 }
 
-export function CardTitle({ children }: { children: ReactNode }) {
-    return <div className="text-lg font-bold">{children}</div>;
-}
-
-export function CardDescription({ children }: { children: ReactNode }) {
-    return <div className="text-gray-500">{children}</div>;
+export function CardContent({ children, className }: { children: ReactNode; className?: string }) {
+    return <div className={cn("p-6 pt-0", className)}>{children}</div>;
 }
