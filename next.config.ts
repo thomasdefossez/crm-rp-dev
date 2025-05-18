@@ -7,6 +7,7 @@ const nextConfig = {
     serverActions: {}
   },
   webpack: (config: import('webpack').Configuration) => {
+    if (!config.resolve) config.resolve = {};
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       "@": path.resolve(__dirname),
