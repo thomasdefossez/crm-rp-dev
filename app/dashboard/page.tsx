@@ -13,6 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Mail, Search, FileText, Newspaper, Users, BarChart3, CalendarCheck } from "lucide-react";
 
 export default function Page() {
   return (
@@ -41,6 +42,7 @@ export default function Page() {
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
             <div className="grid auto-rows-min gap-4 md:grid-cols-4">
               <div className="aspect-video rounded-xl bg-muted/50 flex flex-col items-center justify-center p-6 pt-4 text-center">
+                <Mail className="w-6 h-6 mb-2 text-violet-700" />
                 <h2 className="text-lg font-semibold text-foreground mb-2">Emails</h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Envoyez des emails personnalisés pour engager vos destinataires et faire avancer les conversations.
@@ -50,6 +52,7 @@ export default function Page() {
                 </button>
               </div>
               <div className="aspect-video rounded-xl bg-muted/50 flex flex-col items-center justify-center p-6 pt-4 text-center">
+                <Search className="w-6 h-6 mb-2 text-violet-700" />
                 <h2 className="text-lg font-semibold text-foreground mb-2">Veille</h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Suivez la couverture médiatique de votre marque, vos concurrents et vos mots-clés stratégiques.
@@ -59,6 +62,7 @@ export default function Page() {
                 </button>
               </div>
               <div className="aspect-video rounded-xl bg-muted/50 flex flex-col items-center justify-center p-6 pt-4 text-center">
+                <FileText className="w-6 h-6 mb-2 text-violet-700" />
                 <h2 className="text-lg font-semibold text-foreground mb-2">Créateur de communiqué</h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Partagez une actualité marquante de votre marque pour attirer l’attention des médias.
@@ -68,6 +72,7 @@ export default function Page() {
                 </button>
               </div>
               <div className="aspect-video rounded-xl bg-muted/50 flex flex-col items-center justify-center p-6 pt-4 text-center">
+                <Newspaper className="w-6 h-6 mb-2 text-violet-700" />
                 <h2 className="text-lg font-semibold text-foreground mb-2">Salle de presse</h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Centralisez toutes vos actualités dans une salle de presse conviviale pour les journalistes.
@@ -79,6 +84,7 @@ export default function Page() {
             </div>
             <div className="grid auto-rows-min gap-4 md:grid-cols-4">
               <div className="aspect-video rounded-xl bg-muted/50 flex flex-col items-center justify-center p-6 pt-4 text-center">
+                <Users className="w-6 h-6 mb-2 text-violet-700" />
                 <h2 className="text-lg font-semibold text-foreground mb-2">Contacts</h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Organisez vos contacts dans un CRM RP pour mieux gérer vos relations.
@@ -88,6 +94,7 @@ export default function Page() {
                 </button>
               </div>
               <div className="aspect-video rounded-xl bg-muted/50 flex flex-col items-center justify-center p-6 pt-4 text-center">
+                <Search className="w-6 h-6 mb-2 text-violet-700" />
                 <h2 className="text-lg font-semibold text-foreground mb-2">Veille</h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Suivez la couverture médiatique de votre marque, de vos concurrents et de vos mots-clés stratégiques.
@@ -97,6 +104,7 @@ export default function Page() {
                 </button>
               </div>
               <div className="aspect-video rounded-xl bg-muted/50 flex flex-col items-center justify-center p-6 pt-4 text-center">
+                <BarChart3 className="w-6 h-6 mb-2 text-violet-700" />
                 <h2 className="text-lg font-semibold text-foreground mb-2">Rapports</h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Présentez des données pertinentes grâce à des rapports interactifs et personnalisables.
@@ -106,6 +114,7 @@ export default function Page() {
                 </button>
               </div>
               <div className="aspect-video rounded-xl bg-violet-700 text-white flex flex-col items-center justify-center text-center p-6 pt-4">
+                <CalendarCheck className="w-6 h-6 mb-2 text-white" />
                 <h2 className="text-lg font-semibold mb-2">Pour démarrer ?</h2>
                 <p className="text-sm mb-4">Réservez un appel de démonstration gratuit</p>
                 <div className="flex -space-x-2 justify-center mb-6">

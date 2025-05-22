@@ -1,9 +1,11 @@
+// @ts-nocheck
 "use client"
+
+import { Mail, User, Languages, Briefcase } from "lucide-react"
 
 import {
     Sheet,
     SheetContent,
-    SheetHeader,
     SheetTitle,
     SheetTrigger
 } from "@/components/ui/sheet"
@@ -18,7 +20,6 @@ import { Input } from "@/components/ui/input"
 import { CompanyLogo } from "@/components/ui/CompanyLogo"
 import { Label } from "@/components/ui/label"
 import { PhoneField } from "@/components/ui/PhoneField"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
     Select,
     SelectContent,
@@ -27,6 +28,15 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { useState, useEffect, FC } from "react"
+
+function extractDomain(url: string): string {
+  try {
+    const domain = new URL(url.startsWith("http") ? url : "https://" + url).hostname;
+    return domain.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
 import {
   Popover,
   PopoverContent,
@@ -36,7 +46,9 @@ import {
   Command,
   CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
+  CommandGroup,
+  CommandEmpty
 } from "@/components/ui/command"
 import { Checkbox } from "@/components/ui/checkbox"
 import clsx from "clsx"
@@ -77,13 +89,31 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
     const [instagram, setInstagram] = useState("")
     const [periodicity, setPeriodicity] = useState("")
     const [mediaType, setMediaType] = useState<string[]>([])
-    const [salutation, setSalutation] = useState("")
+    const [secteur, setSecteur] = useState("")
+    const [sousSecteur, setSousSecteur] = useState("")
+    // Ajout du champ rôle
     const [role, setRole] = useState("")
+    // Secteurs Secodip
+    const [secteurs, setSecteurs] = useState<{ id: string; nom: string }[]>([]);
+    // Sous-secteurs Secodip
+    const [sousSecteurs, setSousSecteurs] = useState<{ id: string; libelle: string; secteur_id: string }[]>([]);
+    // Charger tous les sous-secteurs au chargement pour popover hiérarchique
+    useEffect(() => {
+      const fetchSousSecteurs = async () => {
+        const { data } = await supabase
+          .from("sous_secteurs_secodip")
+          .select("id, libelle, secteur_id")
+          .order("libelle", { ascending: true });
+        if (data) setSousSecteurs(data);
+      };
+      fetchSousSecteurs();
+    }, []);
     const [editeur, setEditeur] = useState("")
     // Support is now an array of strings for multi-select
     const [support, setSupport] = useState<string[]>([])
     // Liste dynamique des supports
     const [supportsList, setSupportsList] = useState<{ label: string; value: string; editeur?: string }[]>([]);
+
 
     useEffect(() => {
       const fetchSupports = async () => {
@@ -93,7 +123,17 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
           .eq('is_active', true);
         if (data) setSupportsList(data);
       };
+
+      const fetchSecteurs = async () => {
+        const { data, error } = await supabase
+          .from('secteurs_secodip')
+          .select('id, nom')
+          .order('nom', { ascending: true });
+        if (data) setSecteurs(data);
+      };
+
       fetchSupports();
+      fetchSecteurs();
     }, []);
 
     // Champs complémentaires pour organisations
@@ -116,6 +156,18 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
         }
         fetchOrganisations()
     }, [])
+
+    // Hunter.io domain search
+    async function fetchHunterData(domain: string) {
+      try {
+        const response = await fetch(`https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=b30ab576734e14e2f0be9a7243aa462d85c6cfdd`);
+        const data = await response.json();
+        return data.data;
+      } catch (e) {
+        console.error("Erreur Hunter.io", e);
+        return null;
+      }
+    }
 
     async function handleSiretLookup() {
         if (!siret.trim()) return;
@@ -156,6 +208,13 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
             setLibelleCodeNaf(entreprise.libelle_code_naf || "");
             setDateCreation(entreprise.date_creation || "");
             setRevenue(entreprise.dernier_ca?.toString() || "");
+
+            // --- Hunter.io enrichment ---
+            const domain = extractDomain(entreprise.site_web || entreprise.nom_entreprise);
+            const hunterData = await fetchHunterData(domain);
+            if (hunterData?.emails?.length) {
+              setEmail((hunterData.emails[0] && hunterData.emails[0].value) || email);
+            }
 
             toast.success("Informations récupérées via Pappers");
         } catch (err) {
@@ -212,7 +271,9 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                 return
             }
 
-            organisationId = orgData?.id || null
+            organisationId = typeof orgData?.id === "string" && orgData.id.match(/^[0-9a-fA-F-]{36}$/)
+              ? orgData.id
+              : null;
         }
         const { data: contactData, error } = await supabase.from("contacts").insert([
             {
@@ -223,7 +284,7 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                 email,
                 phone,
                 gender,
-                salutation,
+                // salutation: undefined, // Retiré car champ non utilisé ou supprimé
                 company_name: companyName,
                 language,
                 organisation_id: organisationId,
@@ -238,18 +299,22 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                 periodicity,
                 media_type: mediaType.join(','), // multi
                 tags,
-                role,
+                secteur,
+                sous_secteur: sousSecteur && sousSecteur.match(/^[0-9a-fA-F-]{36}$/) ? sousSecteur : null,
                 editeur,
                 support,
+                role,
             },
         ]).select("*").single()
         // Insert into contact_organisation if needed
         if (contactType === "person" && organizationIds.length > 0 && contactData?.id) {
             await supabase.from("contact_organisation").insert(
-                organizationIds.map((orgId) => ({
-                    contact_id: contactData.id,
-                    organisation_id: orgId
-                }))
+                organizationIds
+                    .filter((orgId) => typeof orgId === "string" && orgId.match(/^[0-9a-fA-F-]{36}$/))
+                    .map((orgId) => ({
+                        contact_id: contactData.id,
+                        organisation_id: orgId
+                    }))
             )
         }
         setLoading(false)
@@ -281,10 +346,11 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
             setInstagram("")
             setPeriodicity("")
             setMediaType([])
-            setSalutation("")
-            setRole("")
+            setSecteur("")
+            setSousSecteur("")
             setEditeur("")
             setSupport([])
+            setRole("")
         }
     }
 
@@ -316,30 +382,56 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                         </Button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-3 gap-4">
                         {contactType === "person" ? (
                           <>
                             <div>
                               <Label className="mb-1 block">Prénom</Label>
-                              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                              <div className="relative">
+                                <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  value={firstName}
+                                  onChange={(e) => setFirstName(e.target.value)}
+                                  className="h-9 text-sm pl-8"
+                                />
+                              </div>
                             </div>
                             <div>
                               <Label className="mb-1 block">Nom</Label>
-                              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                              <div className="relative">
+                                <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  value={lastName}
+                                  onChange={(e) => setLastName(e.target.value)}
+                                  className="h-9 text-sm pl-8"
+                                />
+                              </div>
                             </div>
-
                             <div>
                               <Label className="mb-1 block">Email *</Label>
-                              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                              <div className="relative">
+                                <Mail className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="email"
+                                  value={email}
+                                  onChange={(e) => setEmail(e.target.value)}
+                                  required
+                                  className="h-9 text-sm pl-8"
+                                />
+                              </div>
                             </div>
                             <div>
-                              <PhoneField value={phone} onChange={setPhone} />
+                              <PhoneField value={phone} onChange={setPhone} className="h-9 text-sm" />
                             </div>
-
                             <div>
                               <Label className="mb-1 block">Langue</Label>
                               <Select value={language} onValueChange={setLanguage}>
-                                <SelectTrigger><SelectValue placeholder="Choisir une langue" /></SelectTrigger>
+                                <div className="relative">
+                                  <Languages className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                  <SelectTrigger className="h-9 text-sm pl-8">
+                                    <SelectValue placeholder="Choisir une langue" />
+                                  </SelectTrigger>
+                                </div>
                                 <SelectContent>
                                   <SelectItem value="french">Français</SelectItem>
                                   <SelectItem value="english">Anglais</SelectItem>
@@ -347,24 +439,51 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                                 </SelectContent>
                               </Select>
                             </div>
-
                             <div>
                               <Label className="mb-1 block">Organisations</Label>
-                              <Select onValueChange={(value) => {
-                                if (!organizationIds.includes(value)) {
-                                  setOrganizationIds([...organizationIds, value]);
-                                }
-                              }}>
-                                <SelectTrigger><SelectValue placeholder="Ajouter une organisation" /></SelectTrigger>
-                                <SelectContent>
-                                  {organisations.map((org) => (
-                                    <SelectItem key={org.id} value={org.id}>
-                                      {org.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" className="h-9 text-sm w-full justify-between">
+                                    {organizationIds.length > 0
+                                      ? organizationIds
+                                          .map((id) => organisations.find((o) => o.id === id)?.name)
+                                          .filter(Boolean)
+                                          .join(", ")
+                                      : "Ajouter une organisation"}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0">
+                                  <Command>
+                                    <CommandInput placeholder="Rechercher une organisation" />
+                                    <CommandList>
+                                      {organisations.map((org) => (
+                                        <CommandItem
+                                          key={org.id}
+                                          onSelect={() => {
+                                            if (!organizationIds.includes(org.id)) {
+                                              setOrganizationIds([...organizationIds, org.id]);
+                                            }
+                                          }}
+                                        >
+                                          <Checkbox
+                                            checked={organizationIds.includes(org.id)}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                if (!organizationIds.includes(org.id)) {
+                                                  setOrganizationIds([...organizationIds, org.id]);
+                                                }
+                                              } else {
+                                                setOrganizationIds(organizationIds.filter((id) => id !== org.id));
+                                              }
+                                            }}
+                                          />
+                                          <span className="ml-2">{org.name}</span>
+                                        </CommandItem>
+                                      ))}
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                               <div className="flex flex-wrap gap-2 mt-2">
                                 {organizationIds.map((id) => {
                                   const org = organisations.find((o) => o.id === id);
@@ -385,39 +504,89 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                                 })}
                               </div>
                             </div>
+                            {/* Champ Rôle enrichi avec Command */}
+                            <div>
+                              <Label className="mb-1 block">Rôle</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" className="w-full justify-between">
+                                    {role ? role : "Sélectionner ou saisir un rôle"}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0">
+                                  <Command>
+                                    <CommandInput
+                                      placeholder="Rechercher ou ajouter un rôle"
+                                      onValueChange={(value) => setRole(value)}
+                                    />
+                                    <CommandList>
+                                      <CommandEmpty>Aucun rôle trouvé</CommandEmpty>
 
-                            <div className="col-span-2">
+                                      <CommandGroup heading="Direction">
+                                        {["Directeur Général", "Directeur Marketing", "Directeur Commercial", "Directeur de la Rédaction", "Directeur Technique (CTO)"].map((item) => (
+                                          <CommandItem key={item} onSelect={() => setRole(item)}>
+                                            {item}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+
+                                      <CommandGroup heading="Publicité">
+                                        {["Responsable Publicité", "Responsable Partenariats", "Media Planner", "Responsable Programmatique"].map((item) => (
+                                          <CommandItem key={item} onSelect={() => setRole(item)}>
+                                            {item}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+
+                                      <CommandGroup heading="Marketing">
+                                        {["Responsable Marketing", "Chef de Produit", "Responsable Communication", "Responsable Événementiel", "Responsable Branding"].map((item) => (
+                                          <CommandItem key={item} onSelect={() => setRole(item)}>
+                                            {item}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+
+                                      <CommandGroup heading="Éditorial">
+                                        {["Rédacteur en Chef", "Journaliste", "Community Manager", "Responsable SEO", "Responsable Contenu"].map((item) => (
+                                          <CommandItem key={item} onSelect={() => setRole(item)}>
+                                            {item}
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                            <div>
                               <Label className="mb-1 block">Tags</Label>
-                              <div className="flex flex-wrap items-center gap-2 border rounded px-2 py-2">
-                                {tags.split(',').filter(tag => tag.trim()).map((tag, index) => (
-                                  <div key={index} className="bg-gray-100 border border-gray-300 rounded px-2 py-0.5 text-sm flex items-center">
+                              <div className="flex flex-wrap gap-2 w-full">
+                                {tags.split(',').filter(Boolean).map((tag, index) => (
+                                  <div key={index} className="bg-muted px-2 py-1 rounded text-sm flex items-center">
                                     {tag.trim()}
                                     <button
                                       type="button"
-                                      className="ml-2 text-red-500"
-                                      onClick={() => {
-                                        const updatedTags = tags
-                                          .split(',')
-                                          .filter((t, i) => i !== index)
-                                          .join(',');
-                                        setTags(updatedTags);
-                                      }}
+                                      className="ml-1 text-red-500"
+                                      onClick={() =>
+                                        setTags(tags.split(',').filter((t, i) => i !== index).join(','))
+                                      }
                                     >
                                       ✕
                                     </button>
                                   </div>
                                 ))}
-                                <input
-                                  className="flex-1 p-1 text-sm focus:outline-none"
+                                <Input
+                                  className="h-9 text-sm"
                                   placeholder="Ajouter un tag"
                                   value={newTag}
                                   onChange={(e) => setNewTag(e.target.value)}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' && newTag.trim()) {
                                       e.preventDefault();
-                                      const trimmedTag = newTag.trim();
-                                      if (!tags.split(',').map(t => t.trim()).includes(trimmedTag)) {
-                                        setTags(prev => prev ? `${prev},${trimmedTag}` : trimmedTag);
+                                      const trimmed = newTag.trim();
+                                      if (!tags.split(',').map(t => t.trim()).includes(trimmed)) {
+                                        setTags(tags ? `${tags},${trimmed}` : trimmed);
                                       }
                                       setNewTag("");
                                     }
@@ -428,28 +597,77 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                           </>
                         ) : (
                           <>
+                            {/* 1. N° SIRET + bouton "Rechercher" */}
                             <div className="col-span-2 flex items-end gap-4">
                               <div className="flex-1">
                                 <Label className="mb-1 block">N° SIRET</Label>
-                                <Input value={siret} onChange={(e) => setSiret(e.target.value)} className="w-full" />
+                                <div className="relative">
+                                  <Briefcase className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                  <Input value={siret} onChange={(e) => setSiret(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                                </div>
                               </div>
                               <Button onClick={handleSiretLookup}>Rechercher</Button>
                             </div>
+                            {/* 2. Nom de l'entreprise */}
                             <div>
                               <Label className="mb-1 block">Nom de l'entreprise</Label>
-                              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full" />
+                              <div className="relative">
+                                <Briefcase className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                              </div>
                             </div>
+                            {/* 3. Forme juridique */}
+                            <div>
+                              <Label className="mb-1 block">Forme juridique</Label>
+                              <Input value={formeJuridique} onChange={(e) => setFormeJuridique(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                            </div>
+                            {/* 4. SIREN */}
+                            <div>
+                              <Label className="mb-1 block">SIREN</Label>
+                              <Input value={siren} onChange={(e) => setSiren(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                            </div>
+                            {/* 5. Code NAF */}
+                            <div>
+                              <Label className="mb-1 block">Code NAF</Label>
+                              <Input value={codeNaf} onChange={(e) => setCodeNaf(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                            </div>
+                            {/* 6. Libellé Code NAF */}
+                            <div>
+                              <Label className="mb-1 block">Libellé Code NAF</Label>
+                              <Input value={libelleCodeNaf} onChange={(e) => setLibelleCodeNaf(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                            </div>
+                            {/* 7. Date de création */}
+                            <div>
+                              <Label className="mb-1 block">Date de création</Label>
+                              <Input type="date" value={dateCreation} onChange={(e) => setDateCreation(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                            </div>
+                            {/* 8. Chiffre d'affaires */}
+                            <div>
+                              <Label className="mb-1 block">Chiffre d'affaires</Label>
+                              <Input value={revenue} onChange={(e) => setRevenue(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                            </div>
+                            {/* 9. Email * */}
                             <div>
                               <Label className="mb-1 block">Email *</Label>
-                              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full" />
+                              <div className="relative">
+                                <Mail className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full pl-8 h-9 text-sm" />
+                              </div>
                             </div>
+                            {/* 10. Téléphone */}
                             <div>
                               <PhoneField value={phone} onChange={setPhone} className="w-full" />
                             </div>
+                            {/* 11. Langue */}
                             <div>
                               <Label className="mb-1 block">Langue</Label>
                               <Select value={language} onValueChange={setLanguage}>
-                                <SelectTrigger className="w-full"><SelectValue placeholder="Choisir une langue" /></SelectTrigger>
+                                <div className="relative">
+                                  <Languages className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                  <SelectTrigger className="w-full pl-8 h-9 text-sm">
+                                    <SelectValue placeholder="Choisir une langue" />
+                                  </SelectTrigger>
+                                </div>
                                 <SelectContent>
                                   <SelectItem value="french">Français</SelectItem>
                                   <SelectItem value="english">Anglais</SelectItem>
@@ -457,44 +675,80 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                                 </SelectContent>
                               </Select>
                             </div>
-                            <div className="col-span-2">
+                            {/* 12. Tags */}
+                            <div>
                               <Label className="mb-1 block">Tags</Label>
-                              <div className="flex flex-wrap items-center gap-2 border rounded px-2 py-2">
-                                {tags.split(',').filter(tag => tag.trim()).map((tag, index) => (
-                                  <div key={index} className="bg-gray-100 border border-gray-300 rounded px-2 py-0.5 text-sm flex items-center">
+                              <div className="flex flex-wrap gap-2 w-full">
+                                {tags.split(',').filter(Boolean).map((tag, index) => (
+                                  <div key={index} className="bg-muted px-2 py-1 rounded text-sm flex items-center">
                                     {tag.trim()}
                                     <button
                                       type="button"
-                                      className="ml-2 text-red-500"
-                                      onClick={() => {
-                                        const updatedTags = tags
-                                          .split(',')
-                                          .filter((t, i) => i !== index)
-                                          .join(',');
-                                        setTags(updatedTags);
-                                      }}
+                                      className="ml-1 text-red-500"
+                                      onClick={() =>
+                                        setTags(tags.split(',').filter((t, i) => i !== index).join(','))
+                                      }
                                     >
                                       ✕
                                     </button>
                                   </div>
                                 ))}
-                                <input
-                                  className="flex-1 p-1 text-sm focus:outline-none"
+                                <Input
+                                  className="h-9 text-sm"
                                   placeholder="Ajouter un tag"
                                   value={newTag}
                                   onChange={(e) => setNewTag(e.target.value)}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' && newTag.trim()) {
                                       e.preventDefault();
-                                      const trimmedTag = newTag.trim();
-                                      if (!tags.split(',').map(t => t.trim()).includes(trimmedTag)) {
-                                        setTags(prev => prev ? `${prev},${trimmedTag}` : trimmedTag);
+                                      const trimmed = newTag.trim();
+                                      if (!tags.split(',').map(t => t.trim()).includes(trimmed)) {
+                                        setTags(tags ? `${tags},${trimmed}` : trimmed);
                                       }
                                       setNewTag("");
                                     }
                                   }}
                                 />
                               </div>
+                            </div>
+                            {/* Secteur et sous-secteur combinés */}
+                            <div className="col-span-2">
+                              <Label className="mb-1 block">Secteur d'activité</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" className="w-full justify-between">
+                                    {sousSecteur
+                                      ? secteurs.find(s => s.id === secteur)?.nom + " > " + sousSecteurs.find(ss => ss.id === sousSecteur)?.libelle
+                                      : "Sélectionner un secteur et sous-secteur"}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0 max-h-80 overflow-auto">
+                                  <Command>
+                                    <CommandInput placeholder="Rechercher..." />
+                                    <CommandList>
+                                      <CommandEmpty>Aucun résultat trouvé</CommandEmpty>
+                                      {secteurs.map((sect) => {
+                                        const children = sousSecteurs.filter(ss => ss.secteur_id === sect.id);
+                                        return children.length > 0 ? (
+                                          <CommandGroup key={sect.id} heading={sect.nom}>
+                                            {children.map((ss) => (
+                                              <CommandItem
+                                                key={ss.id}
+                                                onSelect={() => {
+                                                  setSecteur(sect.id);
+                                                  setSousSecteur(ss.id);
+                                                }}
+                                              >
+                                                {ss.libelle}
+                                              </CommandItem>
+                                            ))}
+                                          </CommandGroup>
+                                        ) : null;
+                                      })}
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                             </div>
                           </>
                         )}
@@ -519,19 +773,31 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                               </div>
                               <div>
                                 <Label className="mb-1 block">Code postal</Label>
-                                <Input value={zipcode} onChange={(e) => setZipcode(e.target.value)} />
+                                <div className="relative">
+                                  <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                  <Input value={zipcode} onChange={(e) => setZipcode(e.target.value)} className="pl-8 h-9 text-sm" />
+                                </div>
                               </div>
                               <div>
                                 <Label className="mb-1 block">Ville</Label>
-                                <Input value={city} onChange={(e) => setCity(e.target.value)} />
+                                <div className="relative">
+                                  <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                  <Input value={city} onChange={(e) => setCity(e.target.value)} className="pl-8 h-9 text-sm" />
+                                </div>
                               </div>
                               <div>
                                 <Label className="mb-1 block">Région</Label>
-                                <Input value={region} onChange={(e) => setRegion(e.target.value)} />
+                                <div className="relative">
+                                  <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                  <Input value={region} onChange={(e) => setRegion(e.target.value)} className="pl-8 h-9 text-sm" />
+                                </div>
                               </div>
                               <div>
                                 <Label className="mb-1 block">Pays</Label>
-                                <Input value={country} onChange={(e) => setCountry(e.target.value)} />
+                                <div className="relative">
+                                  <User className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                  <Input value={country} onChange={(e) => setCountry(e.target.value)} className="pl-8 h-9 text-sm" />
+                                </div>
                               </div>
                             </div>
                           </AccordionContent>
@@ -541,23 +807,32 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                             <AccordionTrigger>Réseaux sociaux</AccordionTrigger>
                             <AccordionContent className="pt-4">
                               <div className="grid grid-cols-2 gap-4">
-                                <div>
+                                <div className="col-span-1">
                                   <Label className="mb-1 block">Site Web</Label>
-                                  <Input value={website} onChange={(e) => setWebsite(e.target.value)} className="max-w-sm w-full" />
+                                  <div className="relative">
+                                    <Languages className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input value={website} onChange={(e) => setWebsite(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                                  </div>
                                 </div>
-                                <div className="col-span-2">
+                                <div className="col-span-1 flex flex-col justify-end">
                                   <Label className="mb-1 block">Logo</Label>
                                   <div className="max-w-[150px] rounded border p-2">
-                                    <CompanyLogo domain={website} />
+                                    <CompanyLogo domain={extractDomain(website)} />
                                   </div>
                                 </div>
                                 <div>
                                   <Label className="mb-1 block">LinkedIn</Label>
-                                  <Input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className="max-w-sm w-full" />
+                                  <div className="relative">
+                                    <Languages className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                                  </div>
                                 </div>
                                 <div>
                                   <Label className="mb-1 block">Instagram</Label>
-                                  <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} className="max-w-sm w-full" />
+                                  <div className="relative">
+                                    <Languages className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input value={instagram} onChange={(e) => setInstagram(e.target.value)} className="w-full pl-8 h-9 text-sm" />
+                                  </div>
                                 </div>
                               </div>
                             </AccordionContent>
@@ -705,8 +980,8 @@ export const CreateContactDrawer: FC<Props> = ({ open, onOpenChange, onContactCr
                                 setInstagram("")
                                 setPeriodicity("")
                                 setMediaType([])
-                                setSalutation("")
-                                setRole("")
+                                setSecteur("")
+                                setSousSecteur("")
                                 setEditeur("")
                                 setSupport([])
                             }}

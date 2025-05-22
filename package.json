@@ -74,6 +74,7 @@
     "recharts": "^2.15.3",
     "resend": "^4.4.1",
     "shadcn-date-time-picker": "github:rudrodip/shadcn-date-time-picker",
+    "shadcn-ui": "^0.9.5",
     "sonner": "^2.0.3",
     "stripe": "^18.1.0",
     "tailwind-merge": "^3.2.0",

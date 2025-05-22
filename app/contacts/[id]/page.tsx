@@ -12,6 +12,8 @@ import { toast } from 'sonner'; // Ajout du toast
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+
 // Import CreateContactDrawer if not already imported
 import { CreateContactDrawer } from "@/app/contacts/_components/CreateContactDrawer";
 
@@ -271,653 +273,84 @@ export default function ContactDetailPage() {
                 <div className="p-4">
                     {/* contenu original de ta page ici (Header + Grille 3 colonnes) */}
                     <div className="flex items-center justify-between border-b px-8 py-4">
-                        <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" aria-label="Retour" onClick={() => router.push('/contacts')}>
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" aria-label="Paramètres">
-                                <Settings className="h-5 w-5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" aria-label="Favoris">
-                                <Star className="h-5 w-5" />
-                            </Button>
+                        <div className="flex items-center gap-4">
+                          {contact?.website && (
+                            <img
+                              src={`https://logo.clearbit.com/${contact.website}`}
+                              alt="logo"
+                              className="h-8 w-8 rounded-sm border border-gray-200 object-contain"
+                            />
+                          )}
+                          <div className="text-lg font-medium text-sidebar-foreground">
+                            {contact?.company_name
+                              ? contact.company_name
+                              : `${contact?.firstname || ''} ${contact?.lastname || ''}`.trim()}
+                          </div>
+                          <div className="flex gap-2">
+                            <Badge variant="outline" className="text-xs text-muted-foreground">No Connection</Badge>
+                            <Badge variant="outline" className="text-xs text-muted-foreground">No Interaction</Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant="secondary" className="text-sm flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-violet-600" />
-                                Créer un devis
-                            </Button>
-                            <Button variant="secondary" className="text-sm flex items-center gap-2">
-                                <Mail className="h-4 w-4 text-violet-600" />
-                                Créer un email
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                className="text-sm flex items-center gap-2"
-                                onClick={() => setIsDrawerOpen(true)}
-                            >
-                                <PlusCircle className="h-4 w-4 text-violet-600" />
-                                Créer une action
-                            </Button>
-                            <Button variant="outline" className="text-sm text-red-600 flex items-center gap-2" onClick={deleteContact}>
-                                <Trash2 className="h-4 w-4 text-red-600" />
-                                Supprimer ce contact
-                            </Button>
-                        </div>
+                        <TooltipProvider>
+                          <div className="flex items-center gap-2">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="sm" className="flex items-center gap-2 rounded-full px-3 py-1">
+                                  <Mail className="h-4 w-4" />
+                                  Compose email
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Écrire un email</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="icon" className="rounded-full p-2">
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Ajouter une note</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="icon" className="rounded-full p-2">
+                                  <PlusCircle className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Créer une tâche</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="outline" size="icon" className="rounded-full p-2">
+                                  <Zap className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Déclencher une action</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="rounded-full p-2 text-red-600 border-red-200 hover:bg-red-50"
+                                  onClick={deleteContact}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Supprimer</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TooltipProvider>
                     </div>
 
-                    {/* Grille trois colonnes */}
+                   
                     <div className="grid grid-cols-4 gap-6 p-8 items-start">
                         <aside className="xl:col-span-1 space-y-6 col-span-1">
-                            {/* colonne gauche */}
-                            <div className="text-lg font-medium text-sidebar-foreground flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
-                                    <path d="M17 18h1" />
-                                    <path d="M12 18h1" />
-                                    <path d="M7 18h1" />
-                                </svg>
-                                {contact?.company_name
-                                    ? contact.company_name
-                                    : `${contact?.firstname || ''} ${contact?.lastname || ''}`.trim()}
-                            </div>
-
-                            <Card>
-                                <CardHeader className="flex items-center justify-between gap-2 pb-2 min-h-[32px]">
-                                    <div className="text-base font-semibold text-sidebar-foreground flex items-center gap-2">
-                                        <Factory className="h-4 w-4 text-violet-600" />
-                                        sociétés
-                                    </div>
-                                    <div className="flex items-center gap-2 self-center">
-                                      <Button
-                                        onClick={isCompanyEditable ? handleCompanySave : () => setIsCompanyEditable(true)}
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600"
-                                        aria-label={isCompanyEditable ? "Sauvegarder" : "Éditer"}
-                                      >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                          <path strokeLinecap="round" strokeLinejoin="round" d="M11 4h2a2 2 0 0 1 2 2v2m-4 4h.01M17.657 6.343a2 2 0 0 1 0 2.828L10 17.828 6 18l.172-4 7.485-7.485a2 2 0 0 1 2.828 0Z" />
-                                        </svg>
-                                      </Button>
-                                      {isEnriching ? (
-                                        <Button
-                                          type="button"
-                                          disabled
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600"
-                                          title="Enrichissement en cours"
-                                        >
-                                          <svg className="animate-spin h-4 w-4 align-middle" viewBox="0 0 24 24" fill="none">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                                          </svg>
-                                        </Button>
-                                      ) : (
-                                        <Button
-                                          onClick={enrichWithPappers}
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600"
-                                          title="Enrichir via Pappers"
-                                        >
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className={cn("h-5 w-5 align-middle", isEnriched && "text-green-600")}
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                                            <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                          </svg>
-                                        </Button>
-                                      )}
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-2 text-sm text-sidebar-foreground">
-                                    <div className="py-2 flex justify-between">
-                                        <span className="text-xs text-muted-foreground">Nom société</span>
-                                        <div className="flex items-center gap-1">
-                        <span
-                            contentEditable={isCompanyEditable}
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                                const value = e.currentTarget.textContent?.trim().slice(0, 100) || '';
-                                setCompanyName(value);
-                            }}
-                            className={cn(
-                                "text-xs",
-                                isCompanyEditable
-                                    ? "text-gray-700 focus:outline-none border-b border-green-500"
-                                    : companyName !== contact?.company_name
-                                        ? "text-violet-600 font-medium"
-                                        : "text-gray-500"
-                            )}
-                        >
-                          {(companyName || isCompanyEditable) && <>{companyName || '—'}</>}
-                        </span>
-                                            {!isCompanyEditable && companyName !== contact?.company_name && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
-                                                    <path d="m9 12 2 2 4-4"/>
-                                                </svg>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="py-2 flex justify-between">
-                                        <span className="text-xs text-muted-foreground">Site Web</span>
-                                        <div className="flex items-center gap-1">
-                        <span
-                            contentEditable={isCompanyEditable}
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                                const value = e.currentTarget.textContent?.trim().slice(0, 100) || '';
-                                let isValid = false;
-                                try {
-                                    const url = new URL(value.startsWith('http') ? value : 'https://' + value);
-                                    isValid = !!url.hostname;
-                                } catch {
-                                    isValid = false;
-                                }
-                                if (!isValid) {
-                                    toast.error("URL du site invalide");
-                                } else {
-                                    setWebsite(value);
-                                }
-                            }}
-                            className={cn(
-                                "text-xs",
-                                isCompanyEditable
-                                    ? "text-gray-700 focus:outline-none border-b border-green-500"
-                                    : website !== contact?.website
-                                        ? "text-violet-600 font-medium"
-                                        : "text-gray-500"
-                            )}
-                        >
-                          {(website || isCompanyEditable) && <>{website || '—'}</>}
-                        </span>
-                                            {!isCompanyEditable && website !== contact?.website && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
-                                                    <path d="m9 12 2 2 4-4"/>
-                                                </svg>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="py-2 flex justify-between">
-                                        <span className="text-xs text-muted-foreground">Revenus</span>
-                                        <div className="flex items-center gap-1">
-                        <span
-                            contentEditable={isCompanyEditable}
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                                const value = e.currentTarget.textContent?.trim().slice(0, 50) || '';
-                                setRevenue(value);
-                            }}
-                            className={cn(
-                                "text-xs",
-                                isCompanyEditable
-                                    ? "text-gray-700 focus:outline-none border-b border-green-500"
-                                    : revenue !== contact?.revenue
-                                        ? "text-violet-600 font-medium"
-                                        : "text-gray-500"
-                            )}
-                        >
-                          {(revenue || isCompanyEditable) && <>{revenue || '—'}</>}
-                        </span>
-                                            {!isCompanyEditable && revenue !== contact?.revenue && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
-                                                    <path d="m9 12 2 2 4-4"/>
-                                                </svg>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="py-2 flex justify-between">
-                                        <span className="text-xs text-muted-foreground">Créé le</span>
-                                        <span className="text-gray-500">
-                        {contact?.created_at
-                            ? new Date(contact.created_at).toLocaleDateString('fr-FR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                            })
-                            : '—'}
-                      </span>
-                                    </div>
-                                    <div className="py-2 flex justify-between">
-                                        <span className="text-xs text-muted-foreground">Email</span>
-                                        <div className="flex items-center gap-1">
-                        <span
-                            contentEditable={isCompanyEditable}
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                                const value = e.currentTarget.textContent?.trim().slice(0, 100) || '';
-                                const isValid = value.includes('@');
-                                if (!isValid) {
-                                    toast.error("Email invalide");
-                                } else {
-                                    setEmail(value);
-                                }
-                            }}
-                            className={cn(
-                                "text-xs",
-                                isCompanyEditable
-                                    ? "text-gray-700 focus:outline-none border-b border-green-500"
-                                    : email !== contact?.email
-                                        ? "text-violet-600 font-medium"
-                                        : "text-gray-500"
-                            )}
-                        >
-                          {email && <>{email}</>}
-                        </span>
-                                            {!isCompanyEditable && email !== contact?.email && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
-                                                    <path d="m9 12 2 2 4-4"/>
-                                                </svg>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="py-2 flex justify-between">
-                                        <span className="text-xs text-muted-foreground">Téléphone</span>
-                                        <div className="flex items-center gap-1">
-                        <span
-                            contentEditable={isCompanyEditable}
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                                const value = e.currentTarget.textContent?.trim().slice(0, 30) || '';
-                                setPhone(value);
-                            }}
-                            className={cn(
-                                "text-xs",
-                                isCompanyEditable
-                                    ? "text-gray-700 focus:outline-none border-b border-green-500"
-                                    : phone !== contact?.phone
-                                        ? "text-violet-600 font-medium"
-                                        : "text-gray-500"
-                            )}
-                        >
-                          {phone && <>{phone}</>}
-                        </span>
-                                            {!isCompanyEditable && phone !== contact?.phone && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
-                                                    <path d="m9 12 2 2 4-4"/>
-                                                </svg>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="py-2 flex justify-between">
-                                        <span className="text-xs text-muted-foreground">Adresse</span>
-                                        <div className="flex items-center gap-1">
-                        <span
-                            contentEditable={isCompanyEditable}
-                            suppressContentEditableWarning
-                            onBlur={(e) => {
-                                const value = e.currentTarget.textContent?.trim().slice(0, 150) || '';
-                                setAddress(value);
-                            }}
-                            className={cn(
-                                "text-xs",
-                                isCompanyEditable
-                                    ? "text-gray-700 focus:outline-none border-b border-green-500"
-                                    : address !== contact?.address
-                                        ? "text-violet-600 font-medium"
-                                        : "text-gray-500"
-                            )}
-                        >
-                          {address && <>{address}</>}
-                        </span>
-                                            {!isCompanyEditable && address !== contact?.address && (
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/>
-                                                    <path d="m9 12 2 2 4-4"/>
-                                                </svg>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {/* Informations complémentaires (Pappers) */}
-                                    <div className="pt-4">
-                                        <details className="text-sm text-xs text-muted-foreground">
-                                            <summary className="text-sidebar-foreground mb-2">
-                                                Informations complémentaires
-                                            </summary>
-                                            <div className="space-y-2 mt-2 border-t pt-2">
-                                                <div className="flex justify-between">
-                                                    <span className="text-xs text-muted-foreground">SIREN</span>
-                                                    <span className="text-gray-500 text-xs">{siren || '—'}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-xs text-muted-foreground">SIRET siège</span>
-                                                    <span className="text-gray-500 text-xs">{siretSiegeSocial || '—'}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-xs text-muted-foreground">Forme juridique</span>
-                                                    <span
-                                                        contentEditable={isCompanyEditable}
-                                                        suppressContentEditableWarning
-                                                        onBlur={(e) => {
-                                                            const value = e.currentTarget.textContent?.trim() || '';
-                                                            setFormeJuridique(value.slice(0, 30));
-                                                        }}
-                                                        className={cn(
-                                                            "text-xs",
-                                                            isCompanyEditable
-                                                                ? "text-gray-700 focus:outline-none border-b border-green-500"
-                                                                : "text-gray-500"
-                                                        )}
-                                                    >
-                              {(formeJuridique || isCompanyEditable) && <>{formeJuridique || '—'}</>}
-                            </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-xs text-muted-foreground">Code NAF</span>
-                                                    <span className="text-gray-500 text-xs">{codeNaf || '—'} - {libelleCodeNaf || ''}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-xs text-muted-foreground">Date de création</span>
-                                                    <span className="text-gray-500 text-xs">
-                              {dateCreation
-                                  ? new Date(dateCreation).toLocaleDateString('fr-FR', {
-                                      day: '2-digit',
-                                      month: '2-digit',
-                                      year: 'numeric',
-                                  })
-                                  : '—'}
-                            </span>
-                                                </div>
-                                            </div>
-                                        </details>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            {/* Bloc informations de contact */}
-                            <Card>
-                                <CardHeader className="flex items-center justify-between pb-2">
-                                    <div className="text-base font-semibold text-sidebar-foreground flex items-center gap-2">
-                                        <BookUser className="h-4 w-4 text-violet-600" />
-                                        Contact
-                                    </div>
-                                    <Button
-                                        onClick={isContactEditable ? handleSaveChanges : () => setIsContactEditable(true)}
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600"
-                                        aria-label={isContactEditable ? "Sauvegarder" : "Éditer"}
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 4h2a2 2 0 0 1 2 2v2m-4 4h.01M17.657 6.343a2 2 0 0 1 0 2.828L10 17.828 6 18l.172-4 7.485-7.485a2 2 0 0 1 2.828 0Z" />
-                                        </svg>
-                                    </Button>
-                                </CardHeader>
-                                <CardContent className="space-y-2 text-sm text-sidebar-foreground">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xs text-muted-foreground">Nom du contact</span>
-                                        <span
-                                            contentEditable={isContactEditable}
-                                            suppressContentEditableWarning
-                                            onBlur={(e) => {
-                                                const parts = e.currentTarget.textContent?.trim().split(' ') || [];
-                                                setContact((prev: any) =>
-                                                    prev ? { ...prev, firstname: parts[0] || '', lastname: parts.slice(1).join(' ') || '' } : prev
-                                                );
-                                            }}
-                                            className={cn(
-                                                "text-xs",
-                                                isContactEditable
-                                                    ? "text-gray-700 focus:outline-none border-b border-green-500"
-                                                    : "text-gray-800"
-                                            )}
-                                        >
-                        {`${contact?.firstname || ''} ${contact?.lastname || ''}`.trim()}
-                      </span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xs text-muted-foreground">Genre</span>
-                                        <span
-                                            contentEditable={isContactEditable}
-                                            suppressContentEditableWarning
-                                            onBlur={(e) => {
-                                                const value = e.currentTarget.textContent?.trim() || '';
-                                                setContact((prev: any) =>
-                                                    prev ? { ...prev, gender: value } : prev
-                                                );
-                                            }}
-                                            className={cn(
-                                                "text-xs font-medium px-2 py-0.5 rounded",
-                                                isContactEditable
-                                                    ? "text-gray-700 border-b border-green-500"
-                                                    : contact?.gender
-                                                        ? "bg-[#EAE6FD] text-[#6B4EFF]"
-                                                        : "text-gray-500"
-                                            )}
-                                        >
-                        {contact?.gender || '—'}
-                      </span>
-                                    </div>
-                                    {(!companyName || companyName !== contact?.company_name) && (
-                                        <>
-                                            {(!contact?.email || contact?.email !== email) && (
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-xs text-muted-foreground">Email</span>
-                                                    <span className="text-xs text-gray-800">{email || '—'}</span>
-                                                </div>
-                                            )}
-                                            {(!contact?.phone || contact?.phone !== phone) && (
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-xs text-muted-foreground">Téléphone</span>
-                                                    <span className="text-xs text-gray-800">{phone || '—'}</span>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xs text-muted-foreground">Notifications</span>
-                                        <span className="text-xs text-gray-800">{contact?.notifications || '—'}</span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <div className="text-base font-semibold text-sidebar-foreground flex items-center gap-2">
-                                    <BookUser className="h-4 w-4 text-violet-600" />
-                                    Historique contact
-                                </div>
-                              <CardContent className="space-y-2 text-sm text-sidebar-foreground">
-                                <p className="text-xs text-gray-800">Mars 2023</p>
-                                <p className="text-xs text-gray-800">Entreprise créée le 26 mars 2023 à 22:00</p>
-                                <Button variant="link" className="text-violet-600 p-0 h-auto text-sm">
-                                  Voir tout l&apos;historique
-                                </Button>
-                              </CardContent>
-                            </Card>
+                          
+                          
                         </aside>
-
-                        <section className="xl:col-span-2 space-y-6 col-span-2">
-                            <div className="space-y-6">
-                                {/* Onglets principaux avec ShadCN Tabs */}
-                                <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as typeof mainTab)} className="space-y-6">
-                                    <TabsList className="w-fit">
-                                        <TabsTrigger value="overview">Aperçu</TabsTrigger>
-                                        <TabsTrigger value="activity">Activité</TabsTrigger>
-                                    </TabsList>
-
-                                    <TabsContent value="overview">
-                                        <div className="text-sm text-gray-600">Contenu de l’onglet Aperçu</div>
-                                    </TabsContent>
-
-                                    <TabsContent value="activity">
-                                        {/* Onglets secondaires "Tous", "Notes", etc. */}
-                                        <div className="flex items-center gap-6 text-sm font-medium text-sidebar-foreground pb-2">
-                                            {[
-                                                { label: 'Tous', value: 'all', count: 136 },
-                                                { label: 'Notes', value: 'notes', count: 19 },
-                                                { label: 'Interactions', value: 'interactions', count: 24 },
-                                                { label: 'Rappels', value: 'reminders', count: 7 },
-                                                { label: 'Fichiers', value: 'files', count: 70 },
-                                            ].map(({ label, value, count }) => (
-                                                <button
-                                                    key={value}
-                                                    onClick={() => setActiveTab(value as typeof activeTab)}
-                                                    className={cn(
-                                                        "pb-1",
-                                                        activeTab === value
-                                                            ? "text-violet-600 border-b-2 border-violet-600"
-                                                            : "hover:text-sidebar-foreground"
-                                                    )}
-                                                >
-                                                    {label} ({count})
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        <h2 className="text-base font-semibold text-sidebar-foreground">Historique</h2>
-                                        <div className="space-y-4">
-                                            {activeTab === 'all' && (
-                                                <>
-                                                    {/* éléments d’activité comme avant */}
-                                                    <div className="relative pl-6">
-                                                        <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-blue-500" />
-                                                        <div className="rounded-lg bg-white border border-gray-200 p-4 shadow-sm text-sm">
-                                                            <p>
-                                                                <span className="font-medium text-sidebar-foreground">Cameron McLawrence</span> a démarré une conversation sur
-                                                                <span className="ml-1 rounded bg-green-100 px-2 py-0.5 text-xs text-green-800">WhatsApp</span>
-                                                            </p>
-                                                            <p className="mt-1 text-gray-500">Opérateur : Andrew Vance</p>
-                                                            <p className="mt-1 text-right text-xs text-gray-400">Actif il y a 12 min</p>
-                                                        </div>
-                                                    </div>
-                                                    {/* Fichier téléchargé */}
-                                                    <div className="relative pl-6">
-                                                        <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-blue-500" />
-                                                        <div className="rounded-lg bg-white border border-gray-200 p-4 shadow-sm text-sm">
-                                                            <p>Fichier téléchargé <a href="#" className="text-blue-600 underline">my-cool-file.jpg</a></p>
-                                                            <p className="mt-1 text-gray-500">Ajouté par : Lora Adams</p>
-                                                            <p className="mt-1 text-right text-xs text-gray-400">Il y a 2 heures</p>
-                                                        </div>
-                                                    </div>
-                                                    {/* Événement déclenché */}
-                                                    <div className="relative pl-6">
-                                                        <div className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-blue-500" />
-                                                        <div className="rounded-lg bg-white border border-gray-200 p-4 shadow-sm text-sm">
-                                                            <p>Événement déclenché <span className="text-orange-600">webinar-email-follow-up</span></p>
-                                                            <p className="text-xs text-gray-800">source : Christmas Promotion Website</p>
-                                                            <p className="mt-1 text-gray-500">Déclenché par : John Lock</p>
-                                                            <p className="mt-1 text-right text-xs text-gray-400">14 déc. 2023 à 15:31</p>
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-                                            {activeTab === 'notes' && <div className="text-sm text-gray-600">Contenu des notes</div>}
-                                            {activeTab === 'interactions' && <div className="text-sm text-gray-600">Contenu des interactions</div>}
-                                            {activeTab === 'reminders' && <div className="text-sm text-gray-600">Contenu des rappels</div>}
-                                            {activeTab === 'files' && <div className="text-sm text-gray-600">Contenu des fichiers</div>}
-                                        </div>
-                                    </TabsContent>
-                                </Tabs>
-                            </div>
-                        </section>
-
                         <aside className="xl:col-span-1 space-y-6 col-span-1">
-                            {/* Trello */}
-                            <Card>
-                              <CardHeader className="pb-2">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center gap-2 text-sm font-semibold text-sidebar-foreground">
-                                    <LayoutDashboard className="h-4 w-4 text-violet-600" />
-                                    Trello
-                                  </div>
-                                  <a href="#" className="text-xs text-gray-800 hover:underline">Voir dans Trello</a>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="text-sm text-muted-foreground">
-                                <p className="font-medium mb-1 text-sidebar-foreground">Sources</p>
-                                <p className="text-sm">
-                                  <span className="mr-2 inline-flex items-center gap-1">
-                                    <span className="bg-gray-200 rounded px-1.5 py-0.5 text-xs">2023 Strategy</span>
-                                  </span>
-                                  <span className="text-xs">
-                                    sur <span className="font-medium text-sidebar-foreground">Marketing</span>
-                                  </span>
-                                </p>
-                              </CardContent>
-                            </Card>
-
-                            {/* Rappel */}
-                            <Card>
-                              <CardHeader className="pb-2">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center gap-2 text-sm font-semibold text-sidebar-foreground">
-                                    <Bell className="h-4 w-4 text-violet-600" />
-                                    Rappel
-                                  </div>
-                                  <a href="#" className="text-xs text-gray-800 hover:underline">Voir tout</a>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="text-sm text-muted-foreground space-y-2">
-                                <div>
-                                  <p className="font-medium text-sidebar-foreground">
-                                    Rappel de <span className="text-gray-500">Mike Drucker</span>
-                                  </p>
-                                  <p className="text-xs text-gray-800">Déclenché dans deux heures</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-sidebar-foreground">
-                                    Rappel de <span className="text-gray-500">Samantha Smith</span>
-                                  </p>
-                                  <p className="text-xs text-gray-800">Déclenché lundi prochain</p>
-                                </div>
-                              </CardContent>
-                            </Card>
-
-                            {/* Évaluations */}
-                            <Card>
-                              <CardHeader className="pb-2">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center gap-2 text-sm font-semibold text-sidebar-foreground">
-                                    <Star className="h-4 w-4 text-violet-600" />
-                                    Évaluations
-                                  </div>
-                                  <a href="#" className="text-xs text-gray-800 hover:underline">Voir tout</a>
-                                </div>
-                              </CardHeader>
-                              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <div className="text-yellow-400">★★★★☆</div>
-                                    <span className="text-sidebar-foreground">Adam Pierson</span>
-                                  </div>
-                                  <Button variant="ghost" size="icon" className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
-                                    </svg>
-                                  </Button>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <div className="text-yellow-400">★★★☆☆</div>
-                                    <span className="text-sidebar-foreground">Evelina O’Brian</span>
-                                  </div>
-                                  <Button variant="ghost" size="icon" className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
-                                    </svg>
-                                  </Button>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <div className="text-yellow-400">★☆☆☆☆</div>
-                                    <span className="text-sidebar-foreground">Luke White</span>
-                                  </div>
-                                  <Button variant="ghost" size="icon" className="h-5 w-5 p-0 text-gray-400 hover:text-gray-600">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
-                                    </svg>
-                                  </Button>
-                                </div>
-                              </CardContent>
-                            </Card>
+                          {/* À compléter */}
                         </aside>
                     </div>
                 </div>

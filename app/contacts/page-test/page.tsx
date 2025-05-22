@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -18,11 +18,25 @@ import { DataTable } from "@/components/ui/data-table/DataTable"
 import { ContactsToolbar } from "@/components/ui/contacts-toolbar"
 import { CreateContactDrawer } from "../_components/CreateContactDrawer"
 import { toast } from "sonner"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function Page() {
     const [openDrawer, setOpenDrawer] = useState(false)
     const [refreshCounter, setRefreshCounter] = useState(0)
     const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>()
+    const [contactCount, setContactCount] = useState<number | null>(null)
+
+    // Déplace la fonction en dehors de useEffect pour stabilité maximale
+    async function fetchContactCount(setContactCount: (count: number | null) => void) {
+        const { count, error } = await supabase
+            .from("contacts")
+            .select("*", { count: "exact", head: true });
+        if (!error) setContactCount(count);
+    }
+
+    useEffect(() => {
+        fetchContactCount(setContactCount);
+    }, [refreshCounter])
 
     return (
         <SidebarProvider>
@@ -47,15 +61,18 @@ export default function Page() {
                 </header>
 
                 <div className="p-4 relative z-0">
+                    <div className="mb-4">
+                      <h1 className="text-2xl font-bold text-gray-900">
+                        Contacts{" "}
+                        {contactCount !== null && (
+                          <span className="text-violet-600 text-base font-medium align-middle">
+                            ({contactCount})
+                          </span>
+                        )}
+                      </h1>
+                    </div>
                     <ContactsToolbar
                         onAddContact={() => setOpenDrawer(true)}
-                        onDateRangeChange={setDateRange}
-                        popoverProps={{
-                            align: "start",
-                            sideOffset: 8,
-                            avoidCollisions: false,
-                            className: "p-2 z-[999] bg-white border border-gray-300 shadow-xl max-w-[360px]",
-                        }}
                     />
                     <DataTable
                         refreshTrigger={refreshCounter}
