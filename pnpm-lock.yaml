@@ -203,6 +203,9 @@ importers:
       shadcn-date-time-picker:
         specifier: github:rudrodip/shadcn-date-time-picker
         version: https://codeload.github.com/rudrodip/shadcn-date-time-picker/tar.gz/49b310195f8a7cde685029e83c4fad76236aef40(@types/react-dom@19.1.5(@types/react@19.1.4))(@types/react@19.1.4)(tailwindcss@4.1.7)
+      shadcn-ui:
+        specifier: ^0.9.5
+        version: 0.9.5
       sonner:
         specifier: ^2.0.3
         version: 2.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -2083,6 +2086,10 @@ packages:
     resolution: {integrity: sha512-KfdUZsSOw19/ObEWasvBP/Ac4reZvAGauZhs6S/gqNhXhI7cKwvlH7ulj+dOEYnca4bm4SGo8C1bTAQvnTjgQA==}
     engines: {node: '>=0.8'}
 
+  chalk@5.4.1:
+    resolution: {integrity: sha512-zgVZuo2WcZgfUEmsn6eO3kINexW8RAE4maiQ8QNs8CtpPCSyMiYsULR3HQYkm3w8FIA3SberyMJMSldGsW+U3w==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+
   character-entities@2.0.2:
     resolution: {integrity: sha512-shx7oQ0Awen/BRIdkjkvz54PnEEI/EjwXDSIZp86/KKdbafHh1Df/RYGBhn4hbe2+uKC9FnT5UCEdyPz3ai9hQ==}
 
@@ -3459,6 +3466,10 @@ packages:
     resolution: {tarball: https://codeload.github.com/rudrodip/shadcn-date-time-picker/tar.gz/49b310195f8a7cde685029e83c4fad76236aef40}
     version: 0.1.0
 
+  shadcn-ui@0.9.5:
+    resolution: {integrity: sha512-dsBQWpdLLYCdSdmvOmu53nJhhWnQD1OiblhuhkI4rPYxPKTyfbmZ2NTJHWMu1fXN9PTfN6IVK5vvh+BrjHJx2g==}
+    hasBin: true
+
   sharp@0.34.1:
     resolution: {integrity: sha512-1j0w61+eVxu7DawFJtnfYcvSv6qPFvfTaqzTQ2BLknVhHTwGS8sc63ZBF4rzkWMBVKybo4S5OBtDdZahh2A1xg==}
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
@@ -3712,8 +3723,8 @@ packages:
   unist-util-visit@5.0.0:
     resolution: {integrity: sha512-MR04uvD+07cwl/yhVuVWAtw+3GOR/knlL55Nd/wAdblk27GCVt3lqpTivy/tkJcZoNPzTwS1Y+KMojlLDhoTzg==}
 
-  unlayer-types@1.263.0:
-    resolution: {integrity: sha512-dOpGPj8P6WkpR1lSRJqprPh8KzFTLdXN7TQAJWjPeSw+RwnIyGtiBRH80efV21S/gjBVT5UL7K1g12S3zTEL6w==}
+  unlayer-types@1.266.0:
+    resolution: {integrity: sha512-0o5P60todvhXUM2ubPxnH9GN3gCWYVC4Bkq9U7CxcgK6EE9ggm2OBXYeBrcUltCkfyJjsoqeJ0Tk8TLG2FcHhg==}
 
   update-browserslist-db@1.1.3:
     resolution: {integrity: sha512-UxhIZQ+QInVdunkDAaiazvvT/+fXL5Osr0JZlJulepYu6Jd7qJtDZjlur0emRlT71EN3ScPoE7gvsuIKKNavKw==}
@@ -5813,6 +5824,8 @@ snapshots:
       adler-32: 1.3.1
       crc-32: 1.2.2
 
+  chalk@5.4.1: {}
+
   character-entities@2.0.2: {}
 
   cheerio-select@2.1.0:
@@ -7042,7 +7055,7 @@ snapshots:
   react-email-editor@1.7.11(react@18.3.1):
     dependencies:
       react: 18.3.1
-      unlayer-types: 1.263.0
+      unlayer-types: 1.266.0
 
   react-fit@2.0.1(@types/react-dom@19.1.5(@types/react@19.1.4))(@types/react@19.1.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -7307,6 +7320,10 @@ snapshots:
       - sass
       - supports-color
       - tailwindcss
+
+  shadcn-ui@0.9.5:
+    dependencies:
+      chalk: 5.4.1
 
   sharp@0.34.1:
     dependencies:
@@ -7591,7 +7608,7 @@ snapshots:
       unist-util-is: 6.0.0
       unist-util-visit-parents: 6.0.1
 
-  unlayer-types@1.263.0: {}
+  unlayer-types@1.266.0: {}
 
   update-browserslist-db@1.1.3(browserslist@4.24.5):
     dependencies:
