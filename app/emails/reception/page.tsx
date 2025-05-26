@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -21,10 +21,27 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { Mail } from "@/components/mail/mail";
-import { accounts, mails } from "@/components/mail/data";
+import { accounts } from "@/components/mail/data";
 
 export default function ReceptionPage() {
     const pathname = usePathname();
+
+    const [fetchedMails, setFetchedMails] = useState([]);
+
+    useEffect(() => {
+      fetch("/api/emails/list?limit=50")
+        .then((res) => res.json())
+        .then((data) => {
+          const formatted = (data.data || []).map((email: any) => ({
+            id: email.id,
+            subject: email.subject || "Sans objet",
+            sender: email.from?.email || "inconnu",
+            date: email.created_at,
+          }));
+          setFetchedMails(formatted);
+        })
+        .catch((err) => console.error("Erreur fetch mails:", err));
+    }, []);
 
     return (
         <SidebarProvider>
@@ -79,7 +96,7 @@ export default function ReceptionPage() {
                     <div className="p-8 bg-white border rounded-lg">
                         <Mail
                           accounts={accounts}
-                          mails={mails}
+                          mails={fetchedMails}
                           defaultLayout={[0, 0]}
                           navCollapsedSize={24}
                         />

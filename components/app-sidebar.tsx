@@ -49,7 +49,7 @@ function getData(pathname: string) {
           },
           {
             title: "Mes contacts",
-            url: "/contacts/page-test",
+            url: "/contacts/",
           },
           {
             title: "Liste de diffusion",
@@ -198,12 +198,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild>
                 <a href="#">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <Command className="size-4" />
+                  <div className="flex aspect-square size-10 items-center justify-center rounded-lg">
+                    <img src="/logo.png" alt="Briefly logo" className="size-10" />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Acme Inc</span>
-                    <span className="truncate text-xs">Enterprise</span>
+                    <span className="truncate font-semibold">Briefly</span>
+                    <span className="truncate text-xs">Clear. Fast. Done</span>
                   </div>
                 </a>
               </SidebarMenuButton>
