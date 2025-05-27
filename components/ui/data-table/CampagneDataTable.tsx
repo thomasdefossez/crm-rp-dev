@@ -55,14 +55,16 @@ interface DataTableProps<TData, TValue> {
     searchQuery?: string
     onSelectionChange?: (selectedIds: string[]) => void
     tableName?: string
+    onRowSelect?: (id: string) => void
 }
 
 export function DataTable<TData, TValue>({
-                                             refreshTrigger,
-                                             onTotalContactsChange,
-                                             searchQuery,
-                                             onSelectionChange,
-                                         }: DataTableProps<TData, TValue>) {
+    refreshTrigger,
+    onTotalContactsChange,
+    searchQuery,
+    onSelectionChange,
+    onRowSelect,
+}: DataTableProps<TData, TValue>) {
     const [data, setData] = useState<TData[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [progressValue, setProgressValue] = useState(0)
@@ -183,13 +185,23 @@ export function DataTable<TData, TValue>({
             const selectedIds = table.getSelectedRowModel().rows.map(row => (row.original as any).id)
             onSelectionChange(selectedIds)
         }
-    }, [rowSelection, onSelectionChange])
+
+        if (onRowSelect) {
+            const selected = table.getSelectedRowModel().rows
+            if (selected.length === 1) {
+                onRowSelect((selected[0].original as any).id)
+            }
+        }
+    }, [rowSelection, onSelectionChange, onRowSelect])
 
     const allColumns = table.getAllLeafColumns()
     const selectedRows = table.getSelectedRowModel().rows
 
     return (
-        <div className="rounded-md border border-border bg-muted/50 p-4 text-sm">
+        <div
+            key={refreshTrigger}
+            className="rounded-md border border-border bg-muted/50 p-4 text-sm"
+        >
             <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                 <Input
                     value={globalFilter ?? ""}

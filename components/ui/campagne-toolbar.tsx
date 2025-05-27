@@ -1,17 +1,76 @@
 "use client"
+"use client"
 
+import { supabase } from '@/lib/supabaseClient';
 import { Button } from "@/components/ui/button"
-import { CalendarIcon, SettingsIcon, PlusIcon } from "lucide-react"
+import { CalendarIcon, SettingsIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { useState } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { CreateCampaignDialog } from "@/components/emails/CreateCampaignDialog"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { toast } from "sonner"
 
-export function CampagneToolbar({ onCampaignCreated }: { onCampaignCreated?: (id: string) => void }) {
+export function CampagneToolbar({
+    onCampaignCreated,
+    selectedCampaignId,
+    onDeleted
+}: {
+    onCampaignCreated?: (id: string) => void,
+    selectedCampaignId?: string,
+    onDeleted?: () => void
+}) {
     const [date, setDate] = useState<Date | undefined>(undefined)
     const [openCreate, setOpenCreate] = useState(false)
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+
+    const deleteCampaign = async (id: string) => {
+        const { error } = await supabase
+            .from("campaigns")
+            .delete()
+            .eq("id", id)
+
+        if (error) {
+            toast(
+                <div>
+                    <p className="font-bold text-red-500">Erreur lors de la suppression</p>
+                    <p className="text-sm text-muted-foreground">{error.message}</p>
+                </div>
+            )
+        } else {
+            toast(
+                <div>
+                    <p className="font-bold">Campagne supprimée</p>
+                    <p className="text-sm text-muted-foreground">La campagne {id} a été supprimée.</p>
+                </div>
+            )
+            if (onDeleted) {
+                onDeleted()
+            }
+        }
+    }
+
+    const handleDeleteClick = () => {
+        if (!selectedCampaignId) {
+            toast(
+                <div>
+                    <p className="font-bold text-red-500">Aucune campagne sélectionnée</p>
+                    <p className="text-sm text-muted-foreground">Veuillez sélectionner une campagne à supprimer.</p>
+                </div>
+            )
+            return
+        }
+        setConfirmDeleteOpen(true)
+    }
+
+    const confirmDelete = () => {
+        if (selectedCampaignId) {
+            deleteCampaign(selectedCampaignId)
+        }
+        setConfirmDeleteOpen(false)
+    }
 
     return (
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -30,12 +89,36 @@ export function CampagneToolbar({ onCampaignCreated }: { onCampaignCreated?: (id
             </div>
 
             <div className="flex items-center gap-2">
-                <Button onClick={() => setOpenCreate(true)} className="bg-violet-700 text-white hover:bg-violet-800">
-                    <PlusIcon className="w-4 h-4 mr-2" /> Ajouter une campagne
-                </Button>
-                <Button variant="outline">
-                    <SettingsIcon className="w-4 h-4" />
-                </Button>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            className="border border-input p-2 rounded-full"
+                            onClick={() => setOpenCreate(true)}
+                        >
+                            <PlusIcon className="w-4 h-4 text-foreground" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Nouveau</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" className="border border-input p-2 rounded-full">
+                            <SettingsIcon className="w-4 h-4 text-foreground" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Paramètres</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" onClick={handleDeleteClick} className="border border-red-500 p-2 rounded-full">
+                            <Trash2Icon className="w-4 h-4 text-red-500" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Supprimer</TooltipContent>
+                </Tooltip>
             </div>
 
             <Dialog open={openCreate} onOpenChange={setOpenCreate}>
@@ -43,6 +126,19 @@ export function CampagneToolbar({ onCampaignCreated }: { onCampaignCreated?: (id
                     <CreateCampaignDialog
                         onClose={() => setOpenCreate(false)}
                     />
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+                <DialogContent className="max-w-sm">
+                    <div className="space-y-4">
+                        <DialogTitle>Confirmer la suppression</DialogTitle>
+                        <p>Êtes-vous sûr de vouloir supprimer cette campagne ? Cette action est irréversible.</p>
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setConfirmDeleteOpen(false)}>Annuler</Button>
+                            <Button variant="destructive" onClick={confirmDelete}>Supprimer</Button>
+                        </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -22,6 +21,9 @@ import { toast } from "sonner"
 export default function Page() {
     const [openDrawer, setOpenDrawer] = useState(false)
     const [refreshCounter, setRefreshCounter] = useState(0)
+    const [selectedCampaignId, setSelectedCampaignId] = useState<string | undefined>(undefined)
+
+    const refreshTable = () => setRefreshCounter((c) => c + 1)
 
     return (
         <SidebarProvider>
@@ -47,13 +49,18 @@ export default function Page() {
 
                 <div className="p-4">
                     <CampagneToolbar
+                        selectedCampaignId={selectedCampaignId}
                         onCampaignCreated={(id) => {
-                            window.location.href = `/emails/add?id=${id}`
+                            if (id) {
+                                window.location.href = `/emails/add?id=${id}`
+                            }
                         }}
+                        onDeleted={refreshTable}
                     />
                     <DataTable
                         refreshTrigger={refreshCounter}
                         tableName="campaigns"
+                        onRowSelect={(id: string) => setSelectedCampaignId(id)}
                     />
                 </div>
             </SidebarInset>
